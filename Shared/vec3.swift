@@ -34,12 +34,12 @@ func - (left: Vec3, right: Vec3) -> Vec3 {
     return Vec3(x: left.x - right.x, y: left.y - right.y, z: left.z - right.z)
 }
  
-func dot (left: Vec3, _ right: Vec3) -> Float {
+func dot (_ left: Vec3, _ right: Vec3) -> Float {
     return Float(left.x * right.x + left.y * right.y + left.z * right.z)
 }
  
-func unit_vector(v: Vec3) -> Vec3 {
-    let length : Float = Float(sqrt(dot(left: v, v)))
+func unit_vector(_ v: Vec3) -> Vec3 {
+    let length : Float = Float(sqrt(dot(v, v)))
     return Vec3(x: v.x/length, y: v.y/length, z: v.z/length)
 }
 

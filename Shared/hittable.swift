@@ -18,7 +18,7 @@ struct HitRecord {
     }
     mutating func set_face_normal(_ ray: Ray, _ outward_normal: Vec3)
     {
-        let front_face = (dot(left: ray.direction, outward_normal) < 0)
+        let front_face = (dot(ray.direction, outward_normal) < 0)
         if (front_face)
         {
             self.normal = outward_normal
