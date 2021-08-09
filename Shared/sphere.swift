@@ -20,7 +20,7 @@ class Sphere: Hittable {
     
     func hit(_ ray: Ray, _ t_min: Float, _ t_max: Float, _ hit_record: inout HitRecord) -> Bool {
         let oc = ray.origin - center
-        let a = oc.length_squared()
+        let a = dot(ray.direction, ray.direction)
         let half_b = dot(oc, ray.direction)
         let c = oc.length_squared() - radius*radius
         

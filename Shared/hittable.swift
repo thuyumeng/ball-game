@@ -43,7 +43,6 @@ class HittableList: Hittable{
         hittable_list = [Hittable]()
     }
     
-    // TODO raytracing的hit
     func hit(_ ray: Ray, _ t_min: Float, _ t_max: Float, _ hit_record: inout HitRecord) -> Bool {
         var hit_anything: Bool = false
         var closet_so_far: Float = t_max
