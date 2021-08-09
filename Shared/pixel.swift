@@ -29,10 +29,10 @@ func random_float()->Float {
 
 func average_color(_ sum_red: UInt, _ sum_green: UInt, _ sum_blue: UInt) -> Pixel{
     let scale = 1.0 / Float(samples_per_pixel)
-    let sum_pixel = Pixel(red: UInt8(Float(sum_red) * scale),
+    let average_pixel = Pixel(red: UInt8(Float(sum_red) * scale),
                           green: UInt8(Float(sum_green) * scale),
                           blue: UInt8(Float(sum_blue) * scale))
-    return sum_pixel
+    return average_pixel
 }
 
 func ray_color(_ r: Ray, _ hittable_list: HittableList) -> Vec3{
