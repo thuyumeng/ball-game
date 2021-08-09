@@ -21,6 +21,20 @@ public struct Pixel {
     }
 }
 
+// 多彩样
+let samples_per_pixel: Int = 10
+func random_float()->Float {
+    return Float.random(in: 0.0..<1.0)
+}
+
+func average_color(_ sum_red: UInt, _ sum_green: UInt, _ sum_blue: UInt) -> Pixel{
+    let scale = 1.0 / Float(samples_per_pixel)
+    let sum_pixel = Pixel(red: UInt8(Float(sum_red) * scale),
+                          green: UInt8(Float(sum_green) * scale),
+                          blue: UInt8(Float(sum_blue) * scale))
+    return sum_pixel
+}
+
 func ray_color(_ r: Ray, _ hittable_list: HittableList) -> Vec3{
     var hit_rec: HitRecord = HitRecord()
     if hittable_list.hit(r, 0.0, Float.infinity, &hit_rec){
@@ -32,7 +46,7 @@ func ray_color(_ r: Ray, _ hittable_list: HittableList) -> Vec3{
 }
 
 public func makePixelSet(width: Int, _ height: Int) -> ([Pixel], Int, Int) {
-    var pixel = Pixel(red: 0, green: 0, blue: 0)
+    let pixel = Pixel(red: 0, green: 0, blue: 0)
     var pixels = [Pixel](repeating: pixel, count: width*height)
     
     // hittable lists
@@ -43,22 +57,30 @@ public func makePixelSet(width: Int, _ height: Int) -> ([Pixel], Int, Int) {
     hittable_list.add(sphere2)
     
     // camera
-    let lower_left_corner = Vec3(x: -2.0, y: 1.0, z: -1.0)
-    let horizontal = Vec3(x: 4.0, y: 0, z: 0)
-    let vertical = Vec3(x: 0, y: -2.0, z: 0)
-    let origin = Vec3(x:0, y:0, z:0)
+    let cam = Camera()
     for i in 0..<width {
         for j in 0..<height {
-            let u = Float(i) / Float(width)
-            let v = Float(j) / Float(height)
-            let r = Ray(origin: origin, direction: unit_vector(lower_left_corner + u * horizontal + v * vertical))
-            let col = ray_color(r, hittable_list)
-            pixel = Pixel(red: UInt8(col.x * 255), green: UInt8(col.y * 255), blue: UInt8(col.z * 255))
-            pixels[i + j * width] = pixel
+            // 多彩样
+            var sum_red: UInt = 0
+            var sum_green: UInt = 0
+            var sum_blue: UInt = 0
+            for _ in 0..<samples_per_pixel{
+                let u = (Float(i) + random_float()) / Float(width)
+                let v = (Float(j) + random_float()) / Float(height)
+                let r = cam.get_ray(u, v)
+                let col = ray_color(r, hittable_list)
+                sum_red += UInt(col.x * 255)
+                sum_green += UInt(col.y * 255)
+                sum_blue += UInt(col.z * 255)
+            }
+            let average_pixel = average_color(sum_red, sum_green, sum_blue)
+            
+            pixels[i + j * width] = average_pixel
         }
     }
     return (pixels, width, height)
 }
+
 
 public func imageFromPixels(pixels: ([Pixel], width: Int, height: Int)) -> CGImage {
     let bitsPerComponent = 8
