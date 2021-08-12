@@ -22,7 +22,7 @@ public struct Pixel {
 }
 
 // 多彩样
-let samples_per_pixel: Int = 10
+let samples_per_pixel: Int = 2
 func random_float()->Float {
     return Float.random(in: 0.0..<1.0)
 }
@@ -35,11 +35,19 @@ func average_color(_ sum_red: UInt, _ sum_green: UInt, _ sum_blue: UInt) -> Pixe
     return average_pixel
 }
 
-func ray_color(_ r: Ray, _ hittable_list: HittableList) -> Vec3{
+func ray_color(_ r: Ray, _ hittable_list: HittableList, _ depth: Int) -> Vec3{
+    if (depth <= 0){
+        return Vec3(x:0, y:0, z:0)
+    }
+    
     var hit_rec: HitRecord = HitRecord()
     if hittable_list.hit(r, 0.0, Float.infinity, &hit_rec){
-        return 0.5*(hit_rec.normal + Vec3(x:1.0, y:1.0, z:1.0))
+        // 生成可能的反射光线
+        let direction = hit_rec.normal + Vec3.random_in_unit_sphere()
+        let ray = Ray(hit_rec.p, direction)
+        return ray_color(ray, hittable_list, depth - 1)
     }
+    
     let unit_direction: Vec3 = unit_vector(r.direction)
     let t = 0.5*(unit_direction.y + 1.0)
     return (1.0 - t)*Vec3(x:1.0, y:1.0, z:1.0) + t*Vec3(x:0.5, y:0.7, z:1.0)
@@ -58,6 +66,7 @@ public func makePixelSet(width: Int, _ height: Int) -> ([Pixel], Int, Int) {
     
     // camera
     let cam = Camera()
+    let max_depth: Int = 5
     for i in 0..<width {
         for j in 0..<height {
             // 多彩样
@@ -68,7 +77,7 @@ public func makePixelSet(width: Int, _ height: Int) -> ([Pixel], Int, Int) {
                 let u = (Float(i) + random_float()) / Float(width)
                 let v = (Float(j) + random_float()) / Float(height)
                 let r = cam.get_ray(u, v)
-                let col = ray_color(r, hittable_list)
+                let col = ray_color(r, hittable_list, max_depth)
                 sum_red += UInt(col.x * 255)
                 sum_green += UInt(col.y * 255)
                 sum_blue += UInt(col.z * 255)

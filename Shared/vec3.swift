@@ -8,6 +8,19 @@
 import Foundation
 
 public struct Vec3 {
+    // 生成uniform分布的单位向量,用rejection method采样生成
+    static func random_in_unit_sphere() ->Vec3{
+        while(true){
+            let v = Vec3(x: Float.random(in: -1.0..<1.0),
+                         y: Float.random(in: -1.0..<1.0),
+                         z: Float.random(in: -1.0..<1.0))
+            if (v.length_squared() >= 1) {
+                continue
+            }
+            return v
+        }
+    }
+    
     var x: Float
     var y: Float
     var z: Float

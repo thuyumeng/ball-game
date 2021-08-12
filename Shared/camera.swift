@@ -30,7 +30,8 @@ class Camera {
     func get_ray(_ u: Float, _ v: Float) -> Ray {
         let dir = unit_vector(
             lower_left_corner! + u*horizontal! + v*vertical! - origin)
-        return Ray(origin: origin,
-                   direction: dir)
+        return Ray(origin,
+                   dir)
     }
 }
+

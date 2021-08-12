@@ -521,7 +521,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "wenyue.fractal-raytracing";
+				PRODUCT_BUNDLE_IDENTIFIER = "xiaobao.fractal-raytracing";
 				PRODUCT_NAME = "fractal-raytracing";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
@@ -543,7 +543,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "wenyue.fractal-raytracing";
+				PRODUCT_BUNDLE_IDENTIFIER = "xiaobao.fractal-raytracing";
 				PRODUCT_NAME = "fractal-raytracing";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.0;
