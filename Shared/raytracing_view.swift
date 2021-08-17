@@ -14,7 +14,7 @@ struct raytracing_view: View {
         let height = 800 / 16 * 9
         //let pixelSet = makePixelSet(width: width, height)
         //let image = imageFromPixels(pixels: pixelSet)
-        let image = ComputeTexture()
+        let image = ComputeTexture(width, height)
         Image(image, scale: 1.0, label:Text("tb"))
     }
 }

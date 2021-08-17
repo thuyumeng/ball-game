@@ -18,12 +18,9 @@ struct metal_ray {
     var direction: Vec3
 }
 
-func ComputeTexture() -> CGImage{
+func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
     var image: CGImage?
     do{
-        let win_width = 800
-        let win_height = 800 / 16 * 9
-        
         let device = MTLCreateSystemDefaultDevice()
         let metal_lib = device?.makeDefaultLibrary()
         let metal_func = metal_lib?.makeFunction(name: "compute_ray")
@@ -84,8 +81,10 @@ func ComputeTexture() -> CGImage{
         
         // 等待command buffer执行完成,一般可以GPU和CPU可以并行协作，这里现等待GPU完成工作
         cmd_buff?.waitUntilCompleted()
+        // 这里还要暂停cpu线程，等待texture的填充完毕
+        sleep(6)
         var imageBytes = [UInt8](
-            repeating: 233,
+            repeating: 0,
             count: Int(win_width * win_height * 4))
         
         let region = MTLRegionMake2D(0, 0, win_width, win_height)
