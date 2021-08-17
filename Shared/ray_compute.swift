@@ -41,6 +41,7 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             mipmapped: false)
         texture_descriptor.usage = MTLTextureUsage.shaderWrite
         texture_descriptor.textureType = MTLTextureType.type2D
+        texture_descriptor.storageMode = MTLStorageMode.managed
         let texture = device?.makeTexture(descriptor: texture_descriptor)
         compute_encoder?.setTexture(texture, index: 0)
         // 设置hitlist
@@ -76,13 +77,14 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         //  compute pass encoding结束
         compute_encoder?.endEncoding()
         
+        // 同步encoder
+        let blit_encoder = cmd_buff?.makeBlitCommandEncoder()
+        blit_encoder?.synchronize(texture: texture!, slice: 0, level: 0)
+        blit_encoder?.endEncoding()
+
         // 执行command buffer
         cmd_buff?.commit()
-        
-        // 等待command buffer执行完成,一般可以GPU和CPU可以并行协作，这里现等待GPU完成工作
-        cmd_buff?.waitUntilCompleted()
-        // 这里还要暂停cpu线程，等待texture的填充完毕
-        sleep(6)
+ 
         var imageBytes = [UInt8](
             repeating: 0,
             count: Int(win_width * win_height * 4))
@@ -107,7 +109,6 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             width:win_width,
             height:win_height,
             bitsPerComponent:bitsPerComponent,
-                            
             bitsPerPixel:bitsPerPixel,
             bytesPerRow:win_width * 4,
             space:rgbColorSpace,
