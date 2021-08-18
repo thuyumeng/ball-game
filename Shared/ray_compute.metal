@@ -57,8 +57,8 @@ struct Ray {
 
     Ray(Vec3 origin, Vec3 direction)
     {
-        origin = origin;
-        direction = direction;
+        this->origin = origin;
+        this->direction = direction;
     }
 };
 
@@ -81,7 +81,6 @@ Vec3 ray_color(const Ray ray)
     Vec3 unit_direction = unit_vector(ray.direction);
     float t = 0.5 * (unit_direction.y + 1.0);
     return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
-//    return Vec3(t, t, t);
 }
 
 kernel void
