@@ -59,7 +59,7 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             options: MTLResourceOptions.storageModeShared)
         compute_encoder?.setBuffer(sphere_buffer, offset: 0, index: 0)
         
-        let eye_position = [Vec3(x:1.0, y:0.0, z:0.0)]
+        let eye_position = [Vec3(x:0.0, y:1.0, z:0.0)]
         let eye_buffer = device?.makeBuffer(
             bytes: eye_position,
             length: MemoryLayout<Vec3>.size,
@@ -117,7 +117,6 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             decode:nil,
             shouldInterpolate:true,
             intent:CGColorRenderingIntent.defaultIntent)
-        
     }
     catch {
         print("create function pipeline state failed")
