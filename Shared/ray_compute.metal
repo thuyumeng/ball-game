@@ -11,22 +11,16 @@ using namespace metal;
 //Vec3 相关函数
 struct Vec3{
     float x, y, z;
-//    Vec3(){
-//        x = 0.0;
-//        y = 0.0;
-//        z = 0.0;
-//    }
-    Vec3(float x, float y, float z){
-        x = x;
-        y = y;
-        z = z;
+    Vec3(){
+        x = 0.0;
+        y = 0.0;
+        z = 0.0;
     }
-//    Vec3 operator=(const Vec3 u){
-//        x = u.x;
-//        y = u.y;
-//        z = u.z;
-//        return u;
-//    }
+    Vec3(float x, float y, float z){
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
 };
 
 Vec3 operator+(const Vec3 u, const Vec3 v){
@@ -57,16 +51,16 @@ struct Sphere {
     float radius;
 };
 
-//struct Ray {
-//    Vec3 origin;
-//    Vec3 direction;
-//
-//    Ray(Vec3 origin, Vec3 direction)
-//    {
-//        origin = origin;
-//        direction = direction;
-//    }
-//};
+struct Ray {
+    Vec3 origin;
+    Vec3 direction;
+
+    Ray(Vec3 origin, Vec3 direction)
+    {
+        origin = origin;
+        direction = direction;
+    }
+};
 
 // 归一化Vec3
 Vec3 unit_vector(const Vec3 direction)
@@ -82,13 +76,13 @@ Vec3 unit_vector(const Vec3 direction)
 }
 
 // 测试ray color 函数
-//Vec3 ray_color(const Ray ray)
-//{
-//    Vec3 unit_direction = unit_vector(ray.direction);
-//    float t = 0.5 * (unit_direction.y + 1.0);
-////    return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
-//    return Vec3(0.5, 0.7, 1.0);
-//}
+Vec3 ray_color(const Ray ray)
+{
+    Vec3 unit_direction = unit_vector(ray.direction);
+    float t = 0.5 * (unit_direction.y + 1.0);
+    return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
+//    return Vec3(t, t, t);
+}
 
 kernel void
 compute_ray(device const Sphere* spheres,
@@ -115,10 +109,8 @@ compute_ray(device const Sphere* spheres,
     
     float u = float(gid.x) / float(outTexture.get_width() - 1);
     float v = float(gid.y) / float(outTexture.get_height() - 1);
-    Vec3 eye_pos = eye_positions[0];
-//    Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
-//    Vec3 color = ray_color(r);
-    Vec3 color = Vec3(0.5, 0.7, 1.0);
+    Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+    Vec3 color = ray_color(r);
     outTexture.write(half4(color.x, color.y, color.z, 1.0), gid);
 }
 
