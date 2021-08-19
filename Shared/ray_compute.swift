@@ -47,8 +47,12 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         // 设置hitlist
         var spheres = [metal_sphere]()
         spheres.append(
-            metal_sphere(center:Vec3(x:0,y:0,z:0),
-                         radius:1.0)
+            metal_sphere(center:Vec3(x:0,y:0,z:-1.0),
+                         radius:0.5)
+        )
+        spheres.append(
+            metal_sphere(center:Vec3(x:0,y:-100.5,z:-1.0),
+                         radius:100.0)
         )
         
 //        let array_ptr = UnsafeRawPointer(&spheres)
@@ -59,17 +63,28 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             options: MTLResourceOptions.storageModeShared)
         compute_encoder?.setBuffer(sphere_buffer, offset: 0, index: 0)
         
-        let eye_position = [Vec3(x:0.0, y:1.0, z:0.0)]
-        let eye_buffer = device?.makeBuffer(
-            bytes: eye_position,
-            length: MemoryLayout<Vec3>.size,
+        //目前还不需要，先注释
+//        let eye_position = [Vec3(x:0.0, y:0.0, z:0.0)]
+//        let eye_buffer = device?.makeBuffer(
+//            bytes: eye_position,
+//            length: MemoryLayout<Vec3>.size,
+//            options: MTLResourceOptions.storageModeShared)
+//        compute_encoder?.setBuffer(eye_buffer, offset:0, index:1)
+        var sphere_cnts = [Int]()
+        sphere_cnts.append(spheres.count)
+        
+        let cnts_buffer = device?.makeBuffer(
+            bytes: sphere_cnts,
+            length: MemoryLayout<Int>.size,
             options: MTLResourceOptions.storageModeShared)
-        compute_encoder?.setBuffer(eye_buffer, offset:0, index:1)
+        compute_encoder?.setBuffer(cnts_buffer, offset:0, index:1)
         
         // 设置thread组织形式
         let grid_size = MTLSizeMake(win_width, win_height, 1)
         // metal 这个thread_group_size 应该怎样设置？
         // 参照 https://developer.apple.com/documentation/metal/calculating_threadgroup_and_grid_sizes
+        // 这片文章：https://developer.apple.com/documentation/metal/creating_threads_and_threadgroups
+        /*  介绍了 grid, threadgroup, simd_group三个层次的thread组织形式，对上面的文章是必不可少的说明补充*/
         let w = func_pso?.threadExecutionWidth
         let h = (func_pso?.maxTotalThreadsPerThreadgroup)! / w!
         let thread_group_size = MTLSizeMake(w!, h, 1)
