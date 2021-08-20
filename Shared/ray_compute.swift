@@ -99,6 +99,7 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
 
         // 执行command buffer
         cmd_buff?.commit()
+        cmd_buff?.waitUntilCompleted()
  
         var imageBytes = [UInt8](
             repeating: 0,

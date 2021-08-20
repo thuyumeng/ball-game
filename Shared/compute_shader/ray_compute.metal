@@ -6,10 +6,43 @@
 //
 
 #include <metal_stdlib>
+//#include "random/random_header.metal"
 using namespace metal;
 
 // 下面的函数有些用到了引用：https://stackoverflow.com/questions/54665905/how-to-define-functions-with-a-referenced-parameter-in-metal-shader-language-exc
 //  以上这片文章很好的解释了如何应用reference和地址空间
+
+#define SAMPLES_PER_PIXEL 100
+typedef struct { uint64_t state;  uint64_t inc; } pcg32_random_t;
+
+uint32_t pcg32_random_r(thread pcg32_random_t* rng)
+{
+    uint64_t oldstate = rng->state;
+    rng->state = oldstate * 6364136223846793005ULL + rng->inc;
+    uint32_t xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
+    uint32_t rot = oldstate >> 59u;
+    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+}
+
+void pcg32_srandom_r(thread pcg32_random_t* rng, uint64_t initstate, uint64_t initseq)
+{
+    rng->state = 0U;
+    rng->inc = (initseq << 1u) | 1u;
+    pcg32_random_r(rng);
+    rng->state += initstate;
+    pcg32_random_r(rng);
+    rng->state = initstate;
+    rng->inc = initseq;
+    
+}
+
+// 生成0～1之间的浮点数
+float randomF(thread pcg32_random_t* rng)
+{
+    //return pcg32_random_r(rng)/float(UINT_MAX);
+//return ldexp(float(pcg32_random_r(rng)), -32);
+    return float(pcg32_random_r(rng) * 1.0) /  pow(2.0, 32.0);
+}
 
 //Vec3 相关函数
 struct Vec3{
@@ -214,14 +247,24 @@ compute_ray(device const Sphere* spheres,
     const Vec3 vertical = Vec3(0.0, -1.0*viewport_height, 0.0);
     const Vec3 lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - Vec3(0, 0, focal_length);
     
-    float u = float(gid.x) / float(outTexture.get_width() - 1);
-    float v = float(gid.y) / float(outTexture.get_height() - 1);
-    Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+    // 多采样
+    pcg32_random_t rng;
+    pcg32_srandom_r(&rng, uint64_t(gid.x), uint64_t(gid.y));
     
-    // 设置hittable list
-    int cnt = sphere_cnts[0];
-    HittableList world = HittableList(spheres, cnt);
-    Vec3 color = ray_color(r, world);
+    Vec3 color = Vec3();
+    for(int i=0; i<SAMPLES_PER_PIXEL; i++)
+    {
+        float u = (float(gid.x) + randomF(&rng)) / float(outTexture.get_width() - 1);
+        float v = (float(gid.y) + randomF(&rng)) / float(outTexture.get_height() - 1);
+        Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+        // 设置hittable list
+        int cnt = sphere_cnts[0];
+        HittableList world = HittableList(spheres, cnt);
+        color = color + ray_color(r, world);
+    }
+    float rcp = 1.0 / float(SAMPLES_PER_PIXEL);
+    color = rcp * color;
+
     outTexture.write(half4(color.x, color.y, color.z, 1.0), gid);
 }
 

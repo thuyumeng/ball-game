@@ -8,50 +8,34 @@
 #include <metal_stdlib>
 using namespace metal;
 
-/*
+#ifndef RANDOM_GENERATOR
+#define RANDOM_GENERATOR
+// 参照 https://www.pcg-random.org/ 实现
+typedef struct { uint64_t state;  uint64_t inc; } pcg32_random_t;
 
- * Random Number Generator
+uint32_t pcg32_random_r(thread pcg32_random_t* rng)
+{
+    uint64_t oldstate = rng->state;
+    rng->state = oldstate * 6364136223846793005ULL + rng->inc;
+    uint32_t xorshifted = ((oldstate >> 18u) ^ oldstate) >> 27u;
+    uint32_t rot = oldstate >> 59u;
+    return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
+}
 
- * Copyright (c
+void pcg32_srandom_r(thread pcg32_random_t* rng, uint64_t initstate, uint64_t initseq)
+{
+    rng->state = 0U;
+    rng->inc = (initseq << 1u) | 1u;
+    pcg32_random_r(rng);
+    rng->state += initstate;
+    pcg32_random_r(rng);
+}
 
- *
+// 生成0～1之间的浮点数
+float randomF(thread pcg32_random_t* rng)
+{
+    //return pcg32_random_r(rng)/float(UINT_MAX);
+    return ldexp(float(pcg32_random_r(rng)), -32);
+}
 
- *      Function                        Result
-
- *      ------------------------------------------------------------------
-
- *
-
- *      TausStep                        Combined Tausworthe Generator or
-
- *                                      Linear Feedback Shift Register (LFSR)
-
- *                                      random number generator. This is a
-
- *                                      helper method for rng, which uses
-
- *                                      a hybrid approach combining LFSR with
-
- *                                      a Linear Congruential Generator (LCG)
-
- *                                      in order to produce random numbers with
-
- *                                      periods of well over 2^121
-
- *
-
- *      rand                            A pseudo-random number based on the
-
- *                                      method outlined in "Efficient
-
- *                                      pseudo-random number generation
-
- *                                      for monte-carlo simulations using
-
- *                                      graphic processors" by Siddhant
-
- *                                      Mohanty et al 2012.
-
- *
-
- */
+#endif
