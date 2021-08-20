@@ -8,8 +8,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-#ifndef RANDOM_GENERATOR
-#define RANDOM_GENERATOR
+#pragma once
 // 参照 https://www.pcg-random.org/ 实现
 typedef struct { uint64_t state;  uint64_t inc; } pcg32_random_t;
 
@@ -38,4 +37,3 @@ float randomF(thread pcg32_random_t* rng)
     return ldexp(float(pcg32_random_r(rng)), -32);
 }
 
-#endif
