@@ -13,6 +13,7 @@ using namespace metal;
 //  以上这片文章很好的解释了如何应用reference和地址空间
 
 #define SAMPLES_PER_PIXEL 100
+#define MAX_DEPTH 50
 
 //Vec3 相关函数
 struct Vec3{
@@ -30,6 +31,12 @@ struct Vec3{
     
     float length_squared(){
         return x*x + y*y + z*z;
+    }
+    
+    void random(thread pcg32_random_t* rng, float x_min, float x_max){
+        x = randomRange(rng, x_min, x_max);
+        y = randomRange(rng, x_min, x_max);
+        z = randomRange(rng, x_min, x_max);
     }
 };
 
@@ -71,6 +78,18 @@ Vec3 unit_vector(thread const Vec3& direction)
              direction.y * rcp_len,
              direction.z * rcp_len);
     return ret;
+}
+
+// 产生unit sphere 中的vector
+Vec3 random_in_unit_sphere(thread pcg32_random_t* rng){
+    Vec3 p = Vec3();
+    while(true){
+        p.random(rng, -1.0, 1.0);
+        if(p.length_squared() >= 1.0){
+            continue;
+        }
+        return p;
+    }
 }
 
 // Ray光线数据结构，就是射线啦。。
@@ -186,17 +205,29 @@ struct HittableList{
 };
 
 
-// 测试ray color 函数
-Vec3 ray_color(thread const Ray& ray, thread const HittableList& world)
+// ray_color 是反射天光的漫反射，每次反射回衰减
+Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread pcg32_random_t* rng)
 {
     HitRecord rec;
+    float ratio = 1.0;
     if (world.hit(ray, 0.0, INFINITY, rec)){
-        return 0.5 * (rec.normal + Vec3(1.0, 1.0, 1.0));
+        ratio *= 0.5;
+        for(int i=0; i<MAX_DEPTH; i++){
+            Vec3 dir = rec.normal + random_in_unit_sphere(rng);
+            Ray ray = Ray(rec.p, dir);
+            if(!world.hit(ray, 0.0, INFINITY, rec)){
+                break;
+            }
+            else{
+                ratio *= 0.5;
+            }
+        }
     }
     
     Vec3 unit_direction = unit_vector(ray.direction);
     float t = 0.5 * (unit_direction.y + 1.0);
-    return (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
+    Vec3 env_color = (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
+    return ratio * env_color;
 }
 
 kernel void
@@ -230,11 +261,11 @@ compute_ray(device const Sphere* spheres,
         // 设置hittable list
         int cnt = sphere_cnts[0];
         HittableList world = HittableList(spheres, cnt);
-        color = color + ray_color(r, world);
+        color = color + ray_color(r, world, &rng);
     }
     float rcp = 1.0 / float(SAMPLES_PER_PIXEL);
     color = rcp * color;
-
     outTexture.write(half4(color.x, color.y, color.z, 1.0), gid);
+    
 }
 

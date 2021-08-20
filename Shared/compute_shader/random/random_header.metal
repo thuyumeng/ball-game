@@ -37,3 +37,8 @@ float randomF(thread pcg32_random_t* rng)
     return ldexp(float(pcg32_random_r(rng)), -32);
 }
 
+// 生成x_min ~ x_max之间的浮点数
+float randomRange(thread pcg32_random_t* rng, float x_min, float x_max){
+    return randomF(rng) * (x_max - x_min) + x_min;
+}
+
