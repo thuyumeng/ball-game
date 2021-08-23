@@ -22,7 +22,6 @@ DerivedData/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-fractal-raytracing.xcodeproj/
 
 ## Obj-C/Swift specific
 *.hmap

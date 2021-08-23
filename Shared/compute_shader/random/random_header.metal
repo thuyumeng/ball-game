@@ -10,6 +10,7 @@ using namespace metal;
 
 #pragma once
 // 参照 https://www.pcg-random.org/ 实现
+
 typedef struct { uint64_t state;  uint64_t inc; } pcg32_random_t;
 
 uint32_t pcg32_random_r(thread pcg32_random_t* rng)
@@ -41,4 +42,3 @@ float randomF(thread pcg32_random_t* rng)
 float randomRange(thread pcg32_random_t* rng, float x_min, float x_max){
     return randomF(rng) * (x_max - x_min) + x_min;
 }
-

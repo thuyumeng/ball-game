@@ -21,6 +21,8 @@ struct raytracing_view: View {
 
 struct raytracing_view_Previews: PreviewProvider {
     static var previews: some View {
-        raytracing_view()
+        Group {
+            raytracing_view()
+        }
     }
 }

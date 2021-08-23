@@ -12,8 +12,8 @@ using namespace metal;
 // 下面的函数有些用到了引用：https://stackoverflow.com/questions/54665905/how-to-define-functions-with-a-referenced-parameter-in-metal-shader-language-exc
 //  以上这片文章很好的解释了如何应用reference和地址空间
 
-#define SAMPLES_PER_PIXEL 100
-#define MAX_DEPTH 50
+#define SAMPLES_PER_PIXEL 200
+#define MAX_DEPTH 1
 
 //Vec3 相关函数
 struct Vec3{
@@ -208,26 +208,26 @@ struct HittableList{
 // ray_color 是反射天光的漫反射，每次反射回衰减
 Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread pcg32_random_t* rng)
 {
-    HitRecord rec;
-    float ratio = 1.0;
-    if (world.hit(ray, 0.0, INFINITY, rec)){
-        ratio *= 0.5;
-        for(int i=0; i<MAX_DEPTH; i++){
-            Vec3 dir = rec.normal + random_in_unit_sphere(rng);
-            Ray ray = Ray(rec.p, dir);
-            if(!world.hit(ray, 0.0, INFINITY, rec)){
-                break;
-            }
-            else{
-                ratio *= 0.5;
-            }
+    Ray cur_ray = ray;
+    float cur_attenuation = 1.0;
+    for (int i = 0; i<50; i++)
+    {
+        HitRecord rec;
+        if(world.hit(cur_ray, 0.0, INFINITY, rec)){
+            Vec3 random_vec;
+            Vec3 target = rec.p + rec.normal + random_in_unit_sphere(rng);
+            cur_attenuation *= 0.5;
+            cur_ray = Ray(rec.p, target-rec.p);
+        }
+        else{
+            Vec3 unit_direction = unit_vector(cur_ray.direction);
+            float t = 0.5*(unit_direction.y + 1.0);
+            Vec3 c = (1.0 - t)*Vec3(1.0, 1.0, 1.0) + t*Vec3(0.5, 0.7, 1.0);
+            return cur_attenuation * c;
+            
         }
     }
-    
-    Vec3 unit_direction = unit_vector(ray.direction);
-    float t = 0.5 * (unit_direction.y + 1.0);
-    Vec3 env_color = (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0);
-    return ratio * env_color;
+    return Vec3(0.0, 0.0, 0.0);
 }
 
 kernel void
@@ -250,22 +250,32 @@ compute_ray(device const Sphere* spheres,
     
     // 多采样
     pcg32_random_t rng;
-    pcg32_srandom_r(&rng, uint64_t(gid.x), uint64_t(gid.y));
+    uint64_t gidx = gid.x + 100;
+    uint64_t gidy = gid.y + 175;
+    pcg32_srandom_r(&rng, uint64_t(gidx *gidy), uint64_t(gidy));
     
     Vec3 color = Vec3();
-    for(int i=0; i<SAMPLES_PER_PIXEL; i++)
+    int test_cnt = 50;
+    float sample_length = 1.0;
+    for(int i=0; i<test_cnt; i++)
     {
-        float u = (float(gid.x) + randomF(&rng)) / float(outTexture.get_width() - 1);
-        float v = (float(gid.y) + randomF(&rng)) / float(outTexture.get_height() - 1);
+        float u = (float(gid.x) + randomF(&rng)*sample_length) / float(outTexture.get_width() - 1);
+        float v = (float(gid.y) + randomF(&rng)*sample_length) / float(outTexture.get_height() - 1);
         Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
         // 设置hittable list
         int cnt = sphere_cnts[0];
         HittableList world = HittableList(spheres, cnt);
         color = color + ray_color(r, world, &rng);
     }
-    float rcp = 1.0 / float(SAMPLES_PER_PIXEL);
+    float rcp = 1.0 / float(test_cnt);
     color = rcp * color;
-    outTexture.write(half4(color.x, color.y, color.z, 1.0), gid);
+    float3 final_color = sqrt(float3(color.x,
+                                     color.y,
+                                     color.z));
+//    color = Vec3(randomRange(&rng, 0.0, 1.0),
+//                 randomRange(&rng, 0.0, 1.0),
+//                 randomRange(&rng, 0.0, 1.0));
+    outTexture.write(half4(final_color.x, final_color.y, final_color.z, 1.0), gid);
     
 }
 

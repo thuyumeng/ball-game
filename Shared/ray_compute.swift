@@ -7,6 +7,7 @@
 
 import Foundation
 import Metal
+import CoreImage
 
 struct metal_sphere {
     var center: Vec3
@@ -41,7 +42,9 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             mipmapped: false)
         texture_descriptor.usage = MTLTextureUsage.shaderWrite
         texture_descriptor.textureType = MTLTextureType.type2D
+        #if os(OSX)
         texture_descriptor.storageMode = MTLStorageMode.managed
+        #endif
         let texture = device?.makeTexture(descriptor: texture_descriptor)
         compute_encoder?.setTexture(texture, index: 0)
         // 设置hitlist
@@ -55,7 +58,6 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
                          radius:100.0)
         )
         
-//        let array_ptr = UnsafeRawPointer(&spheres)
         let array_size = MemoryLayout<metal_sphere>.size * spheres.count
         let sphere_buffer = device?.makeBuffer(
             bytes: spheres,
@@ -63,13 +65,6 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             options: MTLResourceOptions.storageModeShared)
         compute_encoder?.setBuffer(sphere_buffer, offset: 0, index: 0)
         
-        //目前还不需要，先注释
-//        let eye_position = [Vec3(x:0.0, y:0.0, z:0.0)]
-//        let eye_buffer = device?.makeBuffer(
-//            bytes: eye_position,
-//            length: MemoryLayout<Vec3>.size,
-//            options: MTLResourceOptions.storageModeShared)
-//        compute_encoder?.setBuffer(eye_buffer, offset:0, index:1)
         var sphere_cnts = [Int]()
         sphere_cnts.append(spheres.count)
         
@@ -94,7 +89,9 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         
         // 同步encoder
         let blit_encoder = cmd_buff?.makeBlitCommandEncoder()
+        #if os(OSX)
         blit_encoder?.synchronize(texture: texture!, slice: 0, level: 0)
+        #endif
         blit_encoder?.endEncoding()
 
         // 执行command buffer
