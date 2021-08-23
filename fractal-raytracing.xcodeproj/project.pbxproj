@@ -13,7 +13,8 @@
 		749AB71626AAABE300211F61 /* hittable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AB71426AAABE300211F61 /* hittable.swift */; };
 		749AB71826ABB62D00211F61 /* sphere.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AB71726ABB62D00211F61 /* sphere.swift */; };
 		749AB71926ABB62D00211F61 /* sphere.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AB71726ABB62D00211F61 /* sphere.swift */; };
-		749BD8F226D38A7A00D7004F /* compute_shader in Resources */ = {isa = PBXBuildFile; fileRef = 749BD8F126D38A7A00D7004F /* compute_shader */; };
+		749BD8FD26D38E5700D7004F /* ray_compute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 749BD8FC26D38E5700D7004F /* ray_compute.metal */; };
+		749BD8FE26D38E5700D7004F /* ray_compute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 749BD8FC26D38E5700D7004F /* ray_compute.metal */; };
 		74CDC277269D79750097A7C9 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC276269D79750097A7C9 /* Tests_iOS.swift */; };
 		74CDC282269D79750097A7C9 /* Tests_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC281269D79750097A7C9 /* Tests_macOS.swift */; };
 		74CDC284269D79750097A7C9 /* fractal_raytracingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC25B269D79710097A7C9 /* fractal_raytracingApp.swift */; };
@@ -55,7 +56,8 @@
 		749AB71126A902DB00211F61 /* ray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ray.swift; sourceTree = "<group>"; };
 		749AB71426AAABE300211F61 /* hittable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hittable.swift; sourceTree = "<group>"; };
 		749AB71726ABB62D00211F61 /* sphere.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sphere.swift; sourceTree = "<group>"; };
-		749BD8F126D38A7A00D7004F /* compute_shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = compute_shader; sourceTree = "<group>"; };
+		749BD8F926D38DBF00D7004F /* random_header.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; name = random_header.metal; path = random/random_header.metal; sourceTree = "<group>"; };
+		749BD8FC26D38E5700D7004F /* ray_compute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ray_compute.metal; sourceTree = "<group>"; };
 		74CDC25B269D79710097A7C9 /* fractal_raytracingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fractal_raytracingApp.swift; sourceTree = "<group>"; };
 		74CDC25C269D79710097A7C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		74CDC25D269D79750097A7C9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -189,7 +191,8 @@
 		74D368E926CE5AD100E10B34 /* compute_shader */ = {
 			isa = PBXGroup;
 			children = (
-				749BD8F126D38A7A00D7004F /* compute_shader */,
+				749BD8F926D38DBF00D7004F /* random_header.metal */,
+				749BD8FC26D38E5700D7004F /* ray_compute.metal */,
 			);
 			path = compute_shader;
 			sourceTree = "<group>";
@@ -319,7 +322,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				74CDC288269D79750097A7C9 /* Assets.xcassets in Resources */,
-				749BD8F226D38A7A00D7004F /* compute_shader in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +354,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				749BD8FD26D38E5700D7004F /* ray_compute.metal in Sources */,
 				74CDC29C269D7E4E0097A7C9 /* pixel.swift in Sources */,
 				74CDC286269D79750097A7C9 /* ContentView.swift in Sources */,
 				749AB71526AAABE300211F61 /* hittable.swift in Sources */,
@@ -369,6 +372,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				749BD8FE26D38E5700D7004F /* ray_compute.metal in Sources */,
 				74CDC29D269D7E4E0097A7C9 /* pixel.swift in Sources */,
 				74CDC287269D79750097A7C9 /* ContentView.swift in Sources */,
 				749AB71626AAABE300211F61 /* hittable.swift in Sources */,

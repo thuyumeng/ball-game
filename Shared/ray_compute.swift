@@ -42,9 +42,9 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             mipmapped: false)
         texture_descriptor.usage = MTLTextureUsage.shaderWrite
         texture_descriptor.textureType = MTLTextureType.type2D
-        if #available(macOS 10.15, *) {
-            texture_descriptor.storageMode = MTLStorageMode.managed
-        }
+        #if os(OSX)
+        texture_descriptor.storageMode = MTLStorageMode.managed
+        #endif
         let texture = device?.makeTexture(descriptor: texture_descriptor)
         compute_encoder?.setTexture(texture, index: 0)
         // 设置hitlist
@@ -90,7 +90,7 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         // 同步encoder
         let blit_encoder = cmd_buff?.makeBlitCommandEncoder()
         #if os(OSX)
-            blit_encoder?.synchronize(texture: texture!, slice: 0, level: 0)
+        blit_encoder?.synchronize(texture: texture!, slice: 0, level: 0)
         #endif
         blit_encoder?.endEncoding()
 
