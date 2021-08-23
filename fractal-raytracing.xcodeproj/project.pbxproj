@@ -13,6 +13,7 @@
 		749AB71626AAABE300211F61 /* hittable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AB71426AAABE300211F61 /* hittable.swift */; };
 		749AB71826ABB62D00211F61 /* sphere.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AB71726ABB62D00211F61 /* sphere.swift */; };
 		749AB71926ABB62D00211F61 /* sphere.swift in Sources */ = {isa = PBXBuildFile; fileRef = 749AB71726ABB62D00211F61 /* sphere.swift */; };
+		749BD8F226D38A7A00D7004F /* compute_shader in Resources */ = {isa = PBXBuildFile; fileRef = 749BD8F126D38A7A00D7004F /* compute_shader */; };
 		74CDC277269D79750097A7C9 /* Tests_iOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC276269D79750097A7C9 /* Tests_iOS.swift */; };
 		74CDC282269D79750097A7C9 /* Tests_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC281269D79750097A7C9 /* Tests_macOS.swift */; };
 		74CDC284269D79750097A7C9 /* fractal_raytracingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC25B269D79710097A7C9 /* fractal_raytracingApp.swift */; };
@@ -31,8 +32,6 @@
 		74D368DF26C1131100E10B34 /* camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D368DD26C1131100E10B34 /* camera.swift */; };
 		74D368E426CB947500E10B34 /* ray_compute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D368E326CB947400E10B34 /* ray_compute.swift */; };
 		74D368E526CB947500E10B34 /* ray_compute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D368E326CB947400E10B34 /* ray_compute.swift */; };
-		74D368E726CBA6EB00E10B34 /* ray_compute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74D368E626CBA6EB00E10B34 /* ray_compute.metal */; };
-		74D368E826CBA6EB00E10B34 /* ray_compute.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74D368E626CBA6EB00E10B34 /* ray_compute.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +55,7 @@
 		749AB71126A902DB00211F61 /* ray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ray.swift; sourceTree = "<group>"; };
 		749AB71426AAABE300211F61 /* hittable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hittable.swift; sourceTree = "<group>"; };
 		749AB71726ABB62D00211F61 /* sphere.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sphere.swift; sourceTree = "<group>"; };
-		749BD8F026D3814E00D7004F /* random_header.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = random_header.metal; sourceTree = "<group>"; };
+		749BD8F126D38A7A00D7004F /* compute_shader */ = {isa = PBXFileReference; lastKnownFileType = folder; name = compute_shader; sourceTree = "<group>"; };
 		74CDC25B269D79710097A7C9 /* fractal_raytracingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fractal_raytracingApp.swift; sourceTree = "<group>"; };
 		74CDC25C269D79710097A7C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		74CDC25D269D79750097A7C9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -76,7 +75,6 @@
 		74CDC29E269DAA350097A7C9 /* vec3.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = vec3.swift; sourceTree = "<group>"; };
 		74D368DD26C1131100E10B34 /* camera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = camera.swift; sourceTree = "<group>"; };
 		74D368E326CB947400E10B34 /* ray_compute.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ray_compute.swift; sourceTree = "<group>"; };
-		74D368E626CBA6EB00E10B34 /* ray_compute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ray_compute.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,18 +189,9 @@
 		74D368E926CE5AD100E10B34 /* compute_shader */ = {
 			isa = PBXGroup;
 			children = (
-				74D368EB26CE5BCF00E10B34 /* random */,
-				74D368E626CBA6EB00E10B34 /* ray_compute.metal */,
+				749BD8F126D38A7A00D7004F /* compute_shader */,
 			);
 			path = compute_shader;
-			sourceTree = "<group>";
-		};
-		74D368EB26CE5BCF00E10B34 /* random */ = {
-			isa = PBXGroup;
-			children = (
-				749BD8F026D3814E00D7004F /* random_header.metal */,
-			);
-			path = random;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -330,6 +319,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				74CDC288269D79750097A7C9 /* Assets.xcassets in Resources */,
+				749BD8F226D38A7A00D7004F /* compute_shader in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -368,7 +358,6 @@
 				74D368DE26C1131100E10B34 /* camera.swift in Sources */,
 				74CDC299269D7C840097A7C9 /* raytracing_view.swift in Sources */,
 				74CDC284269D79750097A7C9 /* fractal_raytracingApp.swift in Sources */,
-				74D368E726CBA6EB00E10B34 /* ray_compute.metal in Sources */,
 				74D368E426CB947500E10B34 /* ray_compute.swift in Sources */,
 				749AB71226A902DB00211F61 /* ray.swift in Sources */,
 				749AB71826ABB62D00211F61 /* sphere.swift in Sources */,
@@ -386,7 +375,6 @@
 				74D368DF26C1131100E10B34 /* camera.swift in Sources */,
 				74CDC29A269D7C840097A7C9 /* raytracing_view.swift in Sources */,
 				74CDC285269D79750097A7C9 /* fractal_raytracingApp.swift in Sources */,
-				74D368E826CBA6EB00E10B34 /* ray_compute.metal in Sources */,
 				74D368E526CB947500E10B34 /* ray_compute.swift in Sources */,
 				749AB71326A902DB00211F61 /* ray.swift in Sources */,
 				749AB71926ABB62D00211F61 /* sphere.swift in Sources */,
