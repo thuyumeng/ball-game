@@ -42,29 +42,3 @@ float randomF(thread pcg32_random_t* rng)
 float randomRange(thread pcg32_random_t* rng, float x_min, float x_max){
     return randomF(rng) * (x_max - x_min) + x_min;
 }
-
-// Generate a random float in the range [0.0f, 1.0f] using x, y, and z (based on the xor128 algorithm)
-float rand_test(int x, int y, int z)
-{
-    int seed = x + y * 57 + z * 241;
-    seed= (seed<< 13) ^ seed;
-    return (( 1.0 - ( (seed * (seed * seed * 15731 + 789221) + 1376312589) & 2147483647) / 1073741824.0f) + 1.0f) / 2.0f;
-}
-
-struct TRng {
-    int x;
-    int y;
-    int z;
-    
-    TRng(int x, int y, int z)
-    {
-        this->x = x;
-        this->y = y;
-        this->z = z;
-    }
-    
-    float rand(){
-        this->z = this->z+this->x*this->y;
-        return rand_test(this->x, this->y, this->z);
-    }
-};

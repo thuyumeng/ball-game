@@ -12,8 +12,8 @@ using namespace metal;
 // 下面的函数有些用到了引用：https://stackoverflow.com/questions/54665905/how-to-define-functions-with-a-referenced-parameter-in-metal-shader-language-exc
 //  以上这片文章很好的解释了如何应用reference和地址空间
 
-#define SAMPLES_PER_PIXEL 200
-#define MAX_DEPTH 1
+#define SAMPLES_PER_PIXEL 50
+#define MAX_DEPTH 50
 
 
 
@@ -212,7 +212,7 @@ Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread p
 {
     Ray cur_ray = ray;
     float cur_attenuation = 1.0;
-    for (int i = 0; i<50; i++)
+    for (int i = 0; i<MAX_DEPTH; i++)
     {
         HitRecord rec;
         if(world.hit(cur_ray, 0.0, INFINITY, rec)){
@@ -257,9 +257,8 @@ compute_ray(device const Sphere* spheres,
     pcg32_srandom_r(&rng, uint64_t(gidx *gidy), uint64_t(gidy));
     
     Vec3 color = Vec3();
-    int test_cnt = 50;
     float sample_length = 1.0;
-    for(int i=0; i<test_cnt; i++)
+    for(int i=0; i<SAMPLES_PER_PIXEL; i++)
     {
         float u = (float(gid.x) + randomF(&rng)*sample_length) / float(outTexture.get_width() - 1);
         float v = (float(gid.y) + randomF(&rng)*sample_length) / float(outTexture.get_height() - 1);
@@ -269,7 +268,7 @@ compute_ray(device const Sphere* spheres,
         HittableList world = HittableList(spheres, cnt);
         color = color + ray_color(r, world, &rng);
     }
-    float rcp = 1.0 / float(test_cnt);
+    float rcp = 1.0 / float(SAMPLES_PER_PIXEL);
     color = rcp * color;
     float3 final_color = sqrt(float3(color.x,
                                      color.y,
