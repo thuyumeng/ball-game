@@ -53,10 +53,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		74034C3526D3C0BB00BEE306 /* random_header.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; name = random_header.metal; path = random/random_header.metal; sourceTree = "<group>"; };
 		749AB71126A902DB00211F61 /* ray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ray.swift; sourceTree = "<group>"; };
 		749AB71426AAABE300211F61 /* hittable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = hittable.swift; sourceTree = "<group>"; };
 		749AB71726ABB62D00211F61 /* sphere.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sphere.swift; sourceTree = "<group>"; };
-		749BD8F926D38DBF00D7004F /* random_header.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; name = random_header.metal; path = random/random_header.metal; sourceTree = "<group>"; };
 		749BD8FC26D38E5700D7004F /* ray_compute.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ray_compute.metal; sourceTree = "<group>"; };
 		74CDC25B269D79710097A7C9 /* fractal_raytracingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = fractal_raytracingApp.swift; sourceTree = "<group>"; };
 		74CDC25C269D79710097A7C9 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -111,6 +111,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		74034C3426D3C0AA00BEE306 /* random */ = {
+			isa = PBXGroup;
+			children = (
+				74034C3526D3C0BB00BEE306 /* random_header.metal */,
+			);
+			name = random;
+			sourceTree = "<group>";
+		};
 		74CDC255269D79710097A7C9 = {
 			isa = PBXGroup;
 			children = (
@@ -191,7 +199,7 @@
 		74D368E926CE5AD100E10B34 /* compute_shader */ = {
 			isa = PBXGroup;
 			children = (
-				749BD8F926D38DBF00D7004F /* random_header.metal */,
+				74034C3426D3C0AA00BEE306 /* random */,
 				749BD8FC26D38E5700D7004F /* ray_compute.metal */,
 			);
 			path = compute_shader;

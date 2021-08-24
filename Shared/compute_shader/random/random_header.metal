@@ -52,19 +52,20 @@ float rand_test(int x, int y, int z)
 }
 
 struct TRng {
-    int x;
-    int y;
-    int z;
+    float x;
+    float y;
     
-    TRng(int x, int y, int z)
+    TRng(float x, float y)
     {
         this->x = x;
         this->y = y;
-        this->z = z;
     }
     
     float rand(){
-        this->z = this->z+this->x*this->y;
-        return rand_test(this->x, this->y, this->z);
+        float2 xy = float2(this->x, this->y);
+        this->x = fract(sin(dot(xy, float2(12.9898, 78.233))) * 43758.5453);
+        xy = float2(this->x, this->y);
+        this->y = fract(sin(dot(xy, float2(12.9898, 78.233))) * 43758.5453);
+        return this->x;
     }
 };
