@@ -34,12 +34,6 @@ struct Vec3{
     float length_squared(){
         return x*x + y*y + z*z;
     }
-    
-    void random(thread TRng& rng, float x_min, float x_max){
-        x = rng.rand() * (x_max - x_min) + x_min;
-        y = rng.rand() * (x_max - x_min) + x_min;
-        z = rng.rand() * (x_max - x_min) + x_min;
-    }
 };
 
 Vec3 operator+(thread const Vec3& u, thread const Vec3& v){
@@ -83,11 +77,11 @@ Vec3 unit_vector(thread const Vec3& direction)
 }
 
 // 产生unit sphere 中的vector
-Vec3 random_in_unit_sphere(thread TRng& rng)
+Vec3 random_in_unit_sphere(thread pcg32_random_t* rng)
 {
-    float phi = 2.0 * PI * rng.rand();
-    float cosTheta = 2.0 * rng.rand() - 1.0;
-    float u = rng.rand();
+    float phi = 2.0 * PI * randomF(rng);
+    float cosTheta = 2.0 * randomF(rng) - 1.0;
+    float u = randomF(rng);
 
     float theta = acos(cosTheta);
     float r = pow(u, 1.0 / 3.0);
@@ -214,7 +208,7 @@ struct HittableList{
 
 
 // ray_color 是反射天光的漫反射，每次反射回衰减
-Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread TRng& rng)
+Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread pcg32_random_t* rng)
 {
     Ray cur_ray = ray;
     float cur_attenuation = 1.0;
@@ -225,7 +219,11 @@ Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread T
             Vec3 random_vec;
             Vec3 target = rec.p + rec.normal + random_in_unit_sphere(rng);
             cur_attenuation *= 0.5;
-            cur_ray = Ray(rec.p, target-rec.p);
+            
+            // 沿着normal 移动一点，防止表面z-fighting的问题
+            float correction_len = 0.0001f;
+            Vec3 ray_start = rec.p + rec.normal * correction_len;
+            cur_ray = Ray(ray_start, target-rec.p);
         }
         else{
             Vec3 unit_direction = unit_vector(cur_ray.direction);
@@ -263,30 +261,23 @@ compute_ray(device const Sphere* spheres,
     pcg32_srandom_r(&rng, uint64_t(gidx *gidy), uint64_t(gidy));
     
     Vec3 color = Vec3();
-    float2 ratio = float2(float(gidx), float(gidy)) /float2(float(outTexture.get_width()), float(outTexture.get_height()));
-    TRng trng = TRng(ratio.x, ratio.y);
     for(int i=0; i<SAMPLES_PER_PIXEL; i++)
     {
-        float u = (float(gid.x) + trng.rand()) / float(outTexture.get_width() - 1);
-        float v = (float(gid.y) + trng.rand()) / float(outTexture.get_height() - 1);
+        float u = (float(gid.x) + randomF(&rng)) / float(outTexture.get_width() - 1);
+        float v = (float(gid.y) + randomF(&rng)) / float(outTexture.get_height() - 1);
         Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
         // 设置hittable list
         int cnt = sphere_cnts[0];
         HittableList world = HittableList(spheres, cnt);
-        color = color + ray_color(r, world, trng);
+        color = color + ray_color(r, world, &rng);
     }
     float rcp = 1.0 / float(SAMPLES_PER_PIXEL);
     color = rcp * color;
+
     float3 final_color = sqrt(float3(color.x,
                                      color.y,
                                      color.z));
-//    float3 final_color = float3(
-//                                trng.rand(),
-//                                trng.rand(),
-//                                trng.rand());
-//    float3 final_color = float3(randomF(&rng),
-//                 randomF(&rng),
-//                 randomF(&rng));
+
     outTexture.write(half4(final_color.x, final_color.y, final_color.z, 1.0), gid);
     
 }
