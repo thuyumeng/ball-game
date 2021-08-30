@@ -59,6 +59,13 @@ Vec3 operator*(thread const Vec3& v, float t) {
     return t * v;
 }
 
+Vec3 operator*(thread const Vec3& v, thread const Vec3& t) {
+    return Vec3(
+                v.x * t.x,
+                v.y * t.y,
+                v.z * t.z);
+}
+
 // 公共函数
 float dot(thread const Vec3& u, thread const Vec3& v)
 {
@@ -111,9 +118,6 @@ struct Ray {
     }
 };
 
-// Material实现用参数material_type(ENUM)和接口函数来控制不同材质的光线反射，折射性质
-
-
 // 实现两个模块
 // 1、hitrecord：记录每次ray intersect的信息
 // 2、用于检测和光线相交的Sphere。
@@ -142,6 +146,30 @@ struct HitRecord{
     }
 };
 
+// Material实现用参数material_type(ENUM)和接口函数来控制不同材质的光线反射，折射性质
+enum MaterialType{
+    Diffuse,
+    Metal,
+};
+
+bool material_scatter(const MaterialType material_type, thread const Ray& ray_in, thread const HitRecord& hit_rec, thread Vec3& attenuation, thread Ray& scattered, thread pcg32_random_t* rng){
+    switch(material_type)
+    {
+        case Diffuse:
+        {
+            Vec3 scatter_direction = hit_rec.normal + random_in_unit_sphere(rng);
+            scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, scatter_direction);
+            attenuation = 0.5 * attenuation;
+            return true;
+        }
+        default:
+        {
+            return false;
+        }
+    }
+}
+
+// hittable objects
 struct Sphere {
     Vec3 center;
     float radius;
@@ -215,19 +243,19 @@ struct HittableList{
 Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread pcg32_random_t* rng)
 {
     Ray cur_ray = ray;
-    float cur_attenuation = 1.0;
+    Vec3 cur_attenuation = Vec3(1.0, 1.0, 1.0);
     for (int i = 0; i<MAX_DEPTH; i++)
     {
         HitRecord rec;
         if(world.hit(cur_ray, 0.0, INFINITY, rec)){
-            Vec3 random_vec;
-            Vec3 target = rec.p + rec.normal + random_in_unit_sphere(rng);
-            cur_attenuation *= 0.5;
-            
-            // 沿着normal 移动一点，防止表面z-fighting的问题
-            float correction_len = Z_CORRECTION;
-            Vec3 ray_start = rec.p + rec.normal * correction_len;
-            cur_ray = Ray(ray_start, target-rec.p);
+            Ray scattered = cur_ray;
+            if(material_scatter(Diffuse, cur_ray, rec, cur_attenuation, scattered, rng))
+            {
+                cur_ray = scattered;
+            }
+            else{
+                break;
+            }
         }
         else{
             Vec3 unit_direction = unit_vector(cur_ray.direction);
