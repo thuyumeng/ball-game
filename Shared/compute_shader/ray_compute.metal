@@ -15,6 +15,7 @@ using namespace metal;
 #define SAMPLES_PER_PIXEL 100
 #define MAX_DEPTH 50
 #define PI 3.1415926
+#define Z_CORRECTION  0.0001
 
 
 //Vec3 相关函数
@@ -109,6 +110,9 @@ struct Ray {
         return origin + t*direction;
     }
 };
+
+// Material实现用参数material_type(ENUM)和接口函数来控制不同材质的光线反射，折射性质
+
 
 // 实现两个模块
 // 1、hitrecord：记录每次ray intersect的信息
@@ -221,7 +225,7 @@ Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread p
             cur_attenuation *= 0.5;
             
             // 沿着normal 移动一点，防止表面z-fighting的问题
-            float correction_len = 0.0001f;
+            float correction_len = Z_CORRECTION;
             Vec3 ray_start = rec.p + rec.normal * correction_len;
             cur_ray = Ray(ray_start, target-rec.p);
         }
