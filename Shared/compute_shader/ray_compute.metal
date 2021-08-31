@@ -124,6 +124,17 @@ struct Ray {
     }
 };
 
+// Material实现用参数material_type(ENUM)和接口函数来控制不同材质的光线反射，折射性质
+enum MaterialType{
+    Diffuse=0,
+    Metal,
+};
+    
+struct Material {
+    uint material_type;
+    Vec3 material_color;
+};
+    
 // 实现两个模块
 // 1、hitrecord：记录每次ray intersect的信息
 // 2、用于检测和光线相交的Sphere。
@@ -132,6 +143,7 @@ struct HitRecord{
     Vec3 p;
     Vec3 normal;
     float t;
+    Material mtl;
     
     HitRecord(){
         p = Vec3();
@@ -151,27 +163,23 @@ struct HitRecord{
         }
     }
 };
-
-// Material实现用参数material_type(ENUM)和接口函数来控制不同材质的光线反射，折射性质
-enum MaterialType{
-    Diffuse,
-    Metal,
-};
-
-bool material_scatter(const MaterialType material_type, thread const Ray& ray_in, thread const HitRecord& hit_rec, thread Vec3& attenuation, thread Ray& scattered, thread pcg32_random_t* rng){
+    
+bool material_scatter(thread const Ray& ray_in, thread const HitRecord& hit_rec, thread Vec3& attenuation, thread Ray& scattered, thread pcg32_random_t* rng){
+    uint material_type = hit_rec.mtl.material_type;
     switch(material_type)
     {
         case Diffuse:
         {
             Vec3 scatter_direction = hit_rec.normal + random_in_unit_sphere(rng);
             scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, scatter_direction);
-            attenuation = 0.5 * attenuation;
+            attenuation = hit_rec.mtl.material_color * attenuation;
             return true;
         }
         case Metal:
         {
             Vec3 reflected = unit_vector(reflect(ray_in.direction, hit_rec.normal));
             scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, reflected);
+            attenuation = hit_rec.mtl.material_color * attenuation;
             return (dot(scattered.direction, hit_rec.normal) > 0);
         }
         default:
@@ -185,15 +193,20 @@ bool material_scatter(const MaterialType material_type, thread const Ray& ray_in
 struct Sphere {
     Vec3 center;
     float radius;
+    Material mtl;
     
-    Sphere(thread const Vec3& center, float radius){
+    Sphere(thread const Vec3& center, float radius, uint material_type, Vec3 material_color){
         this->center = center;
         this->radius = radius;
+        this->mtl.material_type = material_type;
+        this->mtl.material_color = material_color;
     }
     
-    Sphere(device const Vec3& center, float radius){
+    Sphere(device const Vec3& center, float radius, uint material_type, Vec3 material_color){
         this->center = center;
         this->radius = radius;
+        this->mtl.material_type = material_type;
+        this->mtl.material_color = material_color;
     }
     
     bool hit(thread const Ray& ray, float t_min, float t_max, thread HitRecord& hit_record) const
@@ -239,11 +252,15 @@ struct HittableList{
         HitRecord temp_rec = HitRecord();
         
         for (int i=0; i<sphere_cnts; i++){
-            Sphere sphere = Sphere(spheres[i].center, spheres[i].radius);
+            Sphere sphere = Sphere(spheres[i].center,
+                                   spheres[i].radius,
+                                   spheres[i].mtl.material_type,
+                                   spheres[i].mtl.material_color);
             if (sphere.hit(ray, t_min, closet_so_far, temp_rec)){
                 hit_anything = true;
                 closet_so_far = temp_rec.t;
                 hit_record = temp_rec;
+                hit_record.mtl = sphere.mtl;
             }
         }
         return hit_anything;
@@ -260,10 +277,8 @@ Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread p
     {
         HitRecord rec;
         if(world.hit(cur_ray, 0.0, INFINITY, rec)){
-            Vec3 sphere_color = Vec3(0.4, 0.85, 0.15);
-            cur_attenuation = cur_attenuation * sphere_color;
             Ray scattered = cur_ray;
-            if(material_scatter(Metal, cur_ray, rec, cur_attenuation, scattered, rng))
+            if(material_scatter(cur_ray, rec, cur_attenuation, scattered, rng))
             {
                 cur_ray = scattered;
             }

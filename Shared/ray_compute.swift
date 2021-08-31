@@ -9,9 +9,15 @@ import Foundation
 import Metal
 import CoreImage
 
+struct Material {
+    var material_type: UInt32
+    var material_color: Vec3
+}
+
 struct metal_sphere {
     var center: Vec3
     var radius: Float
+    var mtl: Material
 }
 
 struct metal_ray {
@@ -47,15 +53,47 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         #endif
         let texture = device?.makeTexture(descriptor: texture_descriptor)
         compute_encoder?.setTexture(texture, index: 0)
+        // 设置materialType
+        let Diffuse: UInt32 = 0
+        let Metal: UInt32 = 1
+        
+        let mtl_ground = Material(material_type:Diffuse,
+                                  material_color:Vec3(x: 0.8,
+                                                      y: 0.8,
+                                                      z: 0.0))
+        let mtl_center = Material(material_type: Diffuse,
+                                  material_color: Vec3(x: 0.7,
+                                                       y: 0.3,
+                                                       z: 0.3))
+        let mtl_left = Material(material_type: Metal,
+                                material_color: Vec3(x: 0.8,
+                                                     y: 0.8,
+                                                     z: 0.8))
+        let mtl_right = Material(material_type: Metal,
+                                 material_color: Vec3(x: 0.8,
+                                                      y: 0.6,
+                                                      z: 0.2))
         // 设置hitlist
         var spheres = [metal_sphere]()
         spheres.append(
-            metal_sphere(center:Vec3(x:0,y:0,z:-1.0),
-                         radius:0.5)
+            metal_sphere(center:Vec3(x:0,y:-100.5,z:-1.0),
+                         radius:100.0,
+                         mtl:mtl_ground)
         )
         spheres.append(
-            metal_sphere(center:Vec3(x:0,y:-100.5,z:-1.0),
-                         radius:100.0)
+            metal_sphere(center:Vec3(x:0,y:0,z:-1.0),
+                         radius:0.5,
+                         mtl:mtl_center)
+        )
+        spheres.append(
+            metal_sphere(center:Vec3(x:-1.0,y:0,z:-1.0),
+                         radius:0.5,
+                         mtl:mtl_left)
+        )
+        spheres.append(
+            metal_sphere(center:Vec3(x:1.0,y:0,z:-1.0),
+                         radius:0.5,
+                         mtl:mtl_right)
         )
         
         let array_size = MemoryLayout<metal_sphere>.size * spheres.count
