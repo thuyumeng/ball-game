@@ -84,6 +84,12 @@ Vec3 unit_vector(thread const Vec3& direction)
     return ret;
 }
 
+// 反射
+Vec3 reflect(thread const Vec3& u, thread const Vec3& n) {
+    return u - 2.0 * dot(u,n) * n;
+}
+
+
 // 产生unit sphere 中的vector
 Vec3 random_in_unit_sphere(thread pcg32_random_t* rng)
 {
@@ -161,6 +167,12 @@ bool material_scatter(const MaterialType material_type, thread const Ray& ray_in
             scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, scatter_direction);
             attenuation = 0.5 * attenuation;
             return true;
+        }
+        case Metal:
+        {
+            Vec3 reflected = unit_vector(reflect(ray_in.direction, hit_rec.normal));
+            scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, reflected);
+            return (dot(scattered.direction, hit_rec.normal) > 0);
         }
         default:
         {
@@ -248,8 +260,10 @@ Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread p
     {
         HitRecord rec;
         if(world.hit(cur_ray, 0.0, INFINITY, rec)){
+            Vec3 sphere_color = Vec3(0.4, 0.85, 0.15);
+            cur_attenuation = cur_attenuation * sphere_color;
             Ray scattered = cur_ray;
-            if(material_scatter(Diffuse, cur_ray, rec, cur_attenuation, scattered, rng))
+            if(material_scatter(Metal, cur_ray, rec, cur_attenuation, scattered, rng))
             {
                 cur_ray = scattered;
             }
