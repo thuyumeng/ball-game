@@ -12,6 +12,7 @@ import CoreImage
 struct Material {
     var material_type: UInt32
     var material_color: Vec3
+    var fuzz: Float
 }
 
 struct metal_sphere {
@@ -60,19 +61,23 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         let mtl_ground = Material(material_type:Diffuse,
                                   material_color:Vec3(x: 0.8,
                                                       y: 0.8,
-                                                      z: 0.0))
+                                                      z: 0.0),
+                                  fuzz:1.0)
         let mtl_center = Material(material_type: Diffuse,
                                   material_color: Vec3(x: 0.7,
                                                        y: 0.3,
-                                                       z: 0.3))
+                                                       z: 0.3),
+                                  fuzz:1.0)
         let mtl_left = Material(material_type: Metal,
                                 material_color: Vec3(x: 0.8,
                                                      y: 0.8,
-                                                     z: 0.8))
+                                                     z: 0.8),
+                                fuzz:0.3)
         let mtl_right = Material(material_type: Metal,
                                  material_color: Vec3(x: 0.8,
                                                       y: 0.6,
-                                                      z: 0.2))
+                                                      z: 0.2),
+                                 fuzz:1.0)
         // 设置hitlist
         var spheres = [metal_sphere]()
         spheres.append(

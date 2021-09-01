@@ -133,6 +133,7 @@ enum MaterialType{
 struct Material {
     uint material_type;
     Vec3 material_color;
+    float fuzz;
 };
     
 // 实现两个模块
@@ -177,7 +178,7 @@ bool material_scatter(thread const Ray& ray_in, thread const HitRecord& hit_rec,
         }
         case Metal:
         {
-            Vec3 reflected = unit_vector(reflect(ray_in.direction, hit_rec.normal));
+            Vec3 reflected = unit_vector(reflect(ray_in.direction, hit_rec.normal)) + hit_rec.mtl.fuzz * random_in_unit_sphere(rng);
             scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, reflected);
             attenuation = hit_rec.mtl.material_color * attenuation;
             return (dot(scattered.direction, hit_rec.normal) > 0);
@@ -195,18 +196,16 @@ struct Sphere {
     float radius;
     Material mtl;
     
-    Sphere(thread const Vec3& center, float radius, uint material_type, Vec3 material_color){
+    Sphere(thread const Vec3& center, float radius, Material mtl){
         this->center = center;
         this->radius = radius;
-        this->mtl.material_type = material_type;
-        this->mtl.material_color = material_color;
+        this->mtl = mtl;
     }
     
-    Sphere(device const Vec3& center, float radius, uint material_type, Vec3 material_color){
+    Sphere(device const Vec3& center, float radius, Material mtl){
         this->center = center;
         this->radius = radius;
-        this->mtl.material_type = material_type;
-        this->mtl.material_color = material_color;
+        this->mtl = mtl;
     }
     
     bool hit(thread const Ray& ray, float t_min, float t_max, thread HitRecord& hit_record) const
@@ -254,8 +253,7 @@ struct HittableList{
         for (int i=0; i<sphere_cnts; i++){
             Sphere sphere = Sphere(spheres[i].center,
                                    spheres[i].radius,
-                                   spheres[i].mtl.material_type,
-                                   spheres[i].mtl.material_color);
+                                   spheres[i].mtl);
             if (sphere.hit(ray, t_min, closet_so_far, temp_rec)){
                 hit_anything = true;
                 closet_so_far = temp_rec.t;
