@@ -86,9 +86,21 @@ Vec3 unit_vector(thread const Vec3& direction)
 
 // 反射
 Vec3 reflect(thread const Vec3& u, thread const Vec3& n) {
-    return u - 2.0 * dot(u,n) * n;
+    float3 in_ray = float3(u.x, u.y, u.z);
+    float3 normal = float3(n.x, n.y, n.z);
+    float3 out_ray = reflect(in_ray, normal);
+    return Vec3(out_ray.x, out_ray.y, out_ray.z);
+//    return u - 2.0 * dot(u,n) * n;
 }
 
+// 折射
+Vec3 refract(thread const Vec3& u, thread const Vec3& n, float ir)
+{
+    float3 in_ray = float3(u.x, u.y, u.z);
+    float3 normal = float3(n.x, n.y, n.z);
+    float3 out_ray = refract(in_ray, normal, ir);
+    return Vec3(out_ray.x, out_ray.y, out_ray.z);
+}
 
 // 产生unit sphere 中的vector
 Vec3 random_in_unit_sphere(thread pcg32_random_t* rng)
@@ -128,12 +140,16 @@ struct Ray {
 enum MaterialType{
     Diffuse=0,
     Metal,
+    Dielectric,
 };
     
 struct Material {
     uint material_type;
     Vec3 material_color;
+    // Metal材质的fuzz参数
     float fuzz;
+    // Dielectric材质的refractin参数
+    float ir;
 };
     
 // 实现两个模块
@@ -145,15 +161,17 @@ struct HitRecord{
     Vec3 normal;
     float t;
     Material mtl;
+    bool front_face;
     
     HitRecord(){
         p = Vec3();
         normal = Vec3();
         t = 0.0;
+        front_face = false;
     }
     
     void set_face_normal(thread const Ray& ray, thread const Vec3& outward_normal){
-        bool front_face = (dot(ray.direction, outward_normal) < 0);
+        this->front_face = (dot(ray.direction, outward_normal) < 0);
         
         if (front_face)
         {
@@ -182,6 +200,40 @@ bool material_scatter(thread const Ray& ray_in, thread const HitRecord& hit_rec,
             scattered = Ray(hit_rec.p + Z_CORRECTION * hit_rec.normal, reflected);
             attenuation = hit_rec.mtl.material_color * attenuation;
             return (dot(scattered.direction, hit_rec.normal) > 0);
+        }
+        case Dielectric:
+        {
+            float ir = hit_rec.mtl.ir;
+            float refraction_ratio = hit_rec.front_face ? 1.0 / ir : ir;
+            
+            // 全反升判断
+            Vec3 unit_direction = unit_vector(ray_in.direction);
+            Vec3 unit_normal = unit_vector(hit_rec.normal);
+            float cos_theta = min(dot(-1.0 * unit_direction, unit_normal), 1.0);
+            float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+            bool can_reflect = sin_theta * refraction_ratio >= 1.0;
+            
+            // Schlick Approximation判断
+            float r0 = (1.0 - refraction_ratio) / (1.0 + refraction_ratio);
+            r0 = r0*r0;
+            float reflectance = r0 + (1.0 - r0) * pow((1.0 - cos_theta), 5.0);
+            
+            Vec3 scattered_dir;
+            Vec3 start_pt;
+            if (can_reflect || reflectance > randomF(rng)){
+                scattered_dir = reflect(ray_in.direction, hit_rec.normal);
+                start_pt = hit_rec.p + Z_CORRECTION * hit_rec.normal;
+            }
+            else
+            {
+                start_pt = hit_rec.p - Z_CORRECTION * hit_rec.normal;
+                scattered_dir = refract(unit_direction,
+                                        unit_normal,
+                                        refraction_ratio);
+            }
+            scattered = Ray(start_pt, scattered_dir);
+            attenuation = hit_rec.mtl.material_color * attenuation;
+            return true;
         }
         default:
         {
@@ -231,7 +283,8 @@ struct Sphere {
         
         hit_record.t = root;
         hit_record.p = ray.point_at_parameter(root);
-        hit_record.normal = 1.0 / radius * (hit_record.p - center);
+        Vec3 outward_normal = 1.0 / radius * (hit_record.p - center);
+        hit_record.set_face_normal(ray, outward_normal);
         return true;
     }
 };

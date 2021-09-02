@@ -13,6 +13,7 @@ struct Material {
     var material_type: UInt32
     var material_color: Vec3
     var fuzz: Float
+    var ir: Float
 }
 
 struct metal_sphere {
@@ -57,27 +58,32 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         // 设置materialType
         let Diffuse: UInt32 = 0
         let Metal: UInt32 = 1
+        let Dielectric: UInt32 = 2
         
         let mtl_ground = Material(material_type:Diffuse,
                                   material_color:Vec3(x: 0.8,
                                                       y: 0.8,
                                                       z: 0.0),
-                                  fuzz:1.0)
+                                  fuzz:1.0,
+                                  ir:1.0)
         let mtl_center = Material(material_type: Diffuse,
-                                  material_color: Vec3(x: 0.7,
-                                                       y: 0.3,
-                                                       z: 0.3),
-                                  fuzz:1.0)
-        let mtl_left = Material(material_type: Metal,
+                                  material_color: Vec3(x: 0.1,
+                                                       y: 0.2,
+                                                       z: 0.5),
+                                  fuzz:1.0,
+                                  ir:1.0)
+        let mtl_left = Material(material_type: Dielectric,
                                 material_color: Vec3(x: 0.8,
-                                                     y: 0.8,
-                                                     z: 0.8),
-                                fuzz:0.3)
+                                                     y: 0.5,
+                                                     z: 0.3),
+                                fuzz:0.3,
+                                ir:1.5)
         let mtl_right = Material(material_type: Metal,
                                  material_color: Vec3(x: 0.8,
                                                       y: 0.6,
                                                       z: 0.2),
-                                 fuzz:1.0)
+                                 fuzz:0.0,
+                                 ir:1.0)
         // 设置hitlist
         var spheres = [metal_sphere]()
         spheres.append(
@@ -93,6 +99,11 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         spheres.append(
             metal_sphere(center:Vec3(x:-1.0,y:0,z:-1.0),
                          radius:0.5,
+                         mtl:mtl_left)
+        )
+        spheres.append(
+            metal_sphere(center:Vec3(x:-1.0,y:0,z:-1.0),
+                         radius:-0.4,
                          mtl:mtl_left)
         )
         spheres.append(
