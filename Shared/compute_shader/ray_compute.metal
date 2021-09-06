@@ -318,6 +318,47 @@ struct HittableList{
     }
 };
 
+// 为了减少传输buffer的大小设置CameraData类
+struct CameraData{
+    float vfov; // vertical field of view in degrees
+    float apect_ratio;
+};
+
+// 构建Camera
+struct Camera{
+    // 配置参数
+    CameraData static_data;
+    
+    // 中间计算的参数
+    float theta;
+    float focal_length;
+    float viewport_height;
+    float viewport_width;
+    
+    // 形成ray的Vec参数
+    Vec3 origin;
+    Vec3 lower_left_corner;
+    Vec3 horizontal;
+    Vec3 vertical;
+    
+    Camera(device const CameraData& cam_data){
+        static_data = cam_data;
+        
+        theta = static_data.vfov / 180.0 * PI;
+        focal_length = 1.0;
+        float h = tan(0.5*theta);
+        viewport_height = 2.0 * h;
+        viewport_width = static_data.apect_ratio * viewport_height;
+        horizontal = Vec3(viewport_width, 0.0, 0.0);
+        vertical = Vec3(0.0, -1.0 * viewport_height, 0.0);
+        origin = Vec3(0.0, 0.0, 0.0);
+        lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - Vec3(0.0, 0.0, focal_length);
+    }
+    
+    Ray get_ray(float u, float v) {
+        return Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+    }
+};
 
 // ray_color 是反射天光的漫反射，每次反射回衰减
 Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread pcg32_random_t* rng)
@@ -351,21 +392,12 @@ Vec3 ray_color(thread const Ray& ray, thread const HittableList& world, thread p
 kernel void
 compute_ray(device const Sphere* spheres,
             device const int* sphere_cnts,
+            device const CameraData* cam_data,
             texture2d<half, access::write> outTexture [[texture(0)]],
             uint2                          gid        [[thread_position_in_grid]])
 {
     // 设置camera常数
-    const float aspect_ratio = 16.0 / 9.0;
-    const float viewport_height = 2.0;
-    const float viewport_width = aspect_ratio * viewport_height;
-    const float focal_length = 1.0;
-     
-    // 设置渲染ndc坐标，和ray
-    const Vec3 origin = Vec3(0.0, 0.0, 0.0);
-    const Vec3 horizontal = Vec3(viewport_width, 0.0, 0.0);
-    const Vec3 vertical = Vec3(0.0, -1.0*viewport_height, 0.0);
-    const Vec3 lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - Vec3(0, 0, focal_length);
-    
+    Camera cam = Camera(cam_data[0]);
     // 多采样
     pcg32_random_t rng;
     uint64_t gidx = gid.x;
@@ -377,7 +409,7 @@ compute_ray(device const Sphere* spheres,
     {
         float u = (float(gid.x) + randomF(&rng)) / float(outTexture.get_width() - 1);
         float v = (float(gid.y) + randomF(&rng)) / float(outTexture.get_height() - 1);
-        Ray r = Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+        Ray r = cam.get_ray(u, v);
         // 设置hittable list
         int cnt = sphere_cnts[0];
         HittableList world = HittableList(spheres, cnt);

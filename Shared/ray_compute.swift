@@ -27,6 +27,11 @@ struct metal_ray {
     var direction: Vec3
 }
 
+struct metal_camera {
+    var vfov: Float
+    var aspect_ratio: Float
+}
+
 func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
     var image: CGImage?
     do{
@@ -127,6 +132,22 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
             length: MemoryLayout<Int>.size,
             options: MTLResourceOptions.storageModeShared)
         compute_encoder?.setBuffer(cnts_buffer, offset:0, index:1)
+        
+        // Camera参数
+        var camera_data = [metal_camera]()
+        camera_data.append(
+            metal_camera(vfov: 90.0,
+                         aspect_ratio: 16.0 / 9.0)
+        )
+        let buf_size = MemoryLayout<metal_camera>.size * camera_data.count
+        
+        let cam_buffer = device?.makeBuffer(
+            bytes: camera_data,
+            length: buf_size,
+            options: MTLResourceOptions.storageModeShared)
+        compute_encoder?.setBuffer(cam_buffer,
+                                   offset: 0,
+                                   index: 2)
         
         // 设置thread组织形式
         let grid_size = MTLSizeMake(win_width, win_height, 1)
