@@ -71,6 +71,14 @@ float dot(thread const Vec3& u, thread const Vec3& v)
 {
     return u.x*v.x + u.y*v.y + u.z*v.z;
 }
+
+Vec3 cross(thread const Vec3& u, thread const Vec3& v)
+{
+    float3 u1 = float3(u.x, u.y, u.z);
+    float3 v1 = float3(v.x, v.y, v.z);
+    float3 c = cross(u1, v1);
+    return Vec3(c.x, c.y, c.z);
+}
 // 归一化Vec3
 Vec3 unit_vector(thread const Vec3& direction)
 {
@@ -320,6 +328,10 @@ struct HittableList{
 
 // 为了减少传输buffer的大小设置CameraData类
 struct CameraData{
+    Vec3 lookfrom;
+    Vec3 lookat;
+    Vec3 vup;
+    
     float vfov; // vertical field of view in degrees
     float apect_ratio;
 };
@@ -348,11 +360,16 @@ struct Camera{
         focal_length = 1.0;
         float h = tan(0.5*theta);
         viewport_height = 2.0 * h;
-        viewport_width = static_data.apect_ratio * viewport_height;
-        horizontal = Vec3(viewport_width, 0.0, 0.0);
-        vertical = Vec3(0.0, -1.0 * viewport_height, 0.0);
-        origin = Vec3(0.0, 0.0, 0.0);
-        lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - Vec3(0.0, 0.0, focal_length);
+        viewport_width = 1.0 * static_data.apect_ratio * viewport_height;
+        
+        Vec3 w = unit_vector(static_data.lookfrom - static_data.lookat);
+        Vec3 u = unit_vector(cross(static_data.vup, w));
+        Vec3 v = cross(w, u);
+        
+        horizontal = viewport_width * u;
+        vertical = -1.0 * viewport_height * v;
+        origin = static_data.lookfrom;
+        lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - w;
     }
     
     Ray get_ray(float u, float v) {
