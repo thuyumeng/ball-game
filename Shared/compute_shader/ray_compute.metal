@@ -367,6 +367,7 @@ struct Camera{
         Vec3 v = cross(w, u);
         
         horizontal = viewport_width * u;
+        // -1.0 处理metal坐标方向
         vertical = -1.0 * viewport_height * v;
         origin = static_data.lookfrom;
         lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - w;
