@@ -149,7 +149,7 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
                          vup: Vec3(x:0,
                                    y:1,
                                    z:0),
-                         vfov: 90.0,
+                         vfov: 40.0,
                          aspect_ratio: 16.0 / 9.0)
         )
         let buf_size = MemoryLayout<metal_camera>.size * camera_data.count
