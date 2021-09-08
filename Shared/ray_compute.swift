@@ -34,6 +34,8 @@ struct metal_camera {
     
     var vfov: Float
     var aspect_ratio: Float
+    var aperture: Float
+    var focus_dist: Float
 }
 
 func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
@@ -139,18 +141,26 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         
         // Camera参数
         var camera_data = [metal_camera]()
+        let from = Vec3(x:3,
+                        y:3,
+                        z:2)
+        let to = Vec3(x: 0,
+                      y: 0,
+                      z: -1)
+        let offset = from - to
+        
+        let dist = sqrt(Double(offset.length_squared()))
+        
         camera_data.append(
-            metal_camera(lookfrom: Vec3(x:-2,
-                                        y:2,
-                                        z:1),
-                         lookat: Vec3(x: 0,
-                                      y: 0,
-                                      z: -1),
+            metal_camera(lookfrom: from,
+                         lookat: to,
                          vup: Vec3(x:0,
                                    y:1,
                                    z:0),
-                         vfov: 40.0,
-                         aspect_ratio: 16.0 / 9.0)
+                         vfov: 30.0,
+                         aspect_ratio: 16.0 / 9.0,
+                         aperture: 2.0,
+                         focus_dist: Float(dist))
         )
         let buf_size = MemoryLayout<metal_camera>.size * camera_data.count
         

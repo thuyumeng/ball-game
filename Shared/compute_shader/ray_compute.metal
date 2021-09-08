@@ -127,6 +127,14 @@ Vec3 random_in_unit_sphere(thread pcg32_random_t* rng)
     return Vec3(x, y, z);
 }
 
+// 产生unit disk的random vector
+float2 random_in_unit_disk(thread pcg32_random_t* rng)
+{
+    float r = randomF(rng);
+    float theta = randomF(rng) * 2.0 * PI;
+    return float2(cos(theta), sin(theta)) * r;
+}
+
 
 // Ray光线数据结构，就是射线啦。。
 struct Ray {
@@ -334,6 +342,8 @@ struct CameraData{
     
     float vfov; // vertical field of view in degrees
     float apect_ratio;
+    float aperture;
+    float focus_dist;
 };
 
 // 构建Camera
@@ -353,6 +363,9 @@ struct Camera{
     Vec3 horizontal;
     Vec3 vertical;
     
+    Vec3 u, v, w;
+    float lens_radius;
+    
     Camera(device const CameraData& cam_data){
         static_data = cam_data;
         
@@ -361,20 +374,26 @@ struct Camera{
         float h = tan(0.5*theta);
         viewport_height = 2.0 * h;
         viewport_width = 1.0 * static_data.apect_ratio * viewport_height;
+        float focus_dist = static_data.focus_dist;
         
-        Vec3 w = unit_vector(static_data.lookfrom - static_data.lookat);
-        Vec3 u = unit_vector(cross(static_data.vup, w));
-        Vec3 v = cross(w, u);
+        w = unit_vector(static_data.lookfrom - static_data.lookat);
+        u = unit_vector(cross(static_data.vup, w));
+        v = cross(w, u);
         
-        horizontal = viewport_width * u;
+        horizontal = focus_dist * viewport_width * u;
         // -1.0 处理metal坐标方向
-        vertical = -1.0 * viewport_height * v;
+        vertical = -1.0 * focus_dist * viewport_height * v;
         origin = static_data.lookfrom;
-        lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - w;
+        lower_left_corner = origin - 0.5*horizontal - 0.5*vertical - focus_dist*w;
+        
+        lens_radius = 0.5 * static_data.aperture;
     }
     
-    Ray get_ray(float u, float v) {
-        return Ray(origin, lower_left_corner + u*horizontal + v*vertical - origin);
+    Ray get_ray(float u, float v, thread pcg32_random_t* rng) {
+        float2 rd = lens_radius * random_in_unit_disk(rng);
+        Vec3 offset = rd.x * this->u + rd.y * this->v;
+        Vec3 start_pt = origin + offset;
+        return Ray(start_pt, lower_left_corner + u*horizontal + v*vertical - start_pt);
     }
 };
 
@@ -427,7 +446,7 @@ compute_ray(device const Sphere* spheres,
     {
         float u = (float(gid.x) + randomF(&rng)) / float(outTexture.get_width() - 1);
         float v = (float(gid.y) + randomF(&rng)) / float(outTexture.get_height() - 1);
-        Ray r = cam.get_ray(u, v);
+        Ray r = cam.get_ray(u, v, &rng);
         // 设置hittable list
         int cnt = sphere_cnts[0];
         HittableList world = HittableList(spheres, cnt);
