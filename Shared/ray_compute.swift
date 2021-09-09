@@ -38,6 +38,117 @@ struct metal_camera {
     var focus_dist: Float
 }
 
+// 设置materialType
+let Diffuse: UInt32 = 0
+let Metal: UInt32 = 1
+let Dielectric: UInt32 = 2
+
+func random_scene(_ spheres: inout [metal_sphere]) {
+    let mtl_ground = Material(material_type:Diffuse,
+                              material_color:Vec3(x: 0.8,
+                                                  y: 0.3,
+                                                  z: 0.3),
+                              fuzz:1.0,
+                              ir:1.0)
+    // 地板
+    spheres.append(
+        metal_sphere(center: Vec3(x: 0.0,
+                                  y: -1000.0,
+                                  z: 0.0),
+                     radius: 1000.0,
+                     mtl:mtl_ground)
+    )
+    // 随机生成球
+    for i in -11...11 {
+        for j in -11...11 {
+            let choose_mat = Float.random(in: 0.0..<1.0)
+            let center = Vec3(x: Float(i) + 0.9*Float.random(in: 0.0..<1.0),
+                              y: 0.2,
+                              z: Float(j) + 0.9*Float.random(in: 0.0..<1.0))
+            let offset = center - Vec3(x:4.0, y:0.2, z:0.0)
+            let dist = sqrt(Float(offset.length_squared()))
+            if (dist > 0.9)
+            {
+                if(choose_mat < 0.8){
+                    let color = Vec3(x: Float.random(in: 0.0..<1.0),
+                                     y: Float.random(in: 0.0..<1.0),
+                                     z: Float.random(in: 0.0..<1.0))
+                    let sphere_mtl = Material(material_type: Diffuse,
+                                              material_color: color,
+                                              fuzz: 1.0,
+                                              ir: 1.0)
+                    spheres.append(
+                        metal_sphere(center: center,
+                                     radius: 0.2,
+                                     mtl: sphere_mtl)
+                    )
+                } else if(choose_mat < 0.95) {
+                    let color = Vec3(x: Float.random(in: 0.5..<1.0),
+                                     y: Float.random(in: 0.5..<1.0),
+                                     z: Float.random(in: 0.5..<1.0))
+                    let fuzz = Float.random(in: 0.0..<0.5)
+                    let sphere_mtl = Material(material_type: Metal,
+                                              material_color: color,
+                                              fuzz: fuzz,
+                                              ir: 1.0)
+                    spheres.append(
+                        metal_sphere(center: center,
+                                     radius: 0.2,
+                                     mtl: sphere_mtl)
+                    )
+                } else {
+                    let color = Vec3(x: Float.random(in: 0.7..<1.0),
+                                     y: Float.random(in: 0.7..<1.0),
+                                     z: Float.random(in: 0.7..<1.0))
+    
+                    let sphere_mtl = Material(material_type: Dielectric,
+                                              material_color: color,
+                                              fuzz: 1.0,
+                                              ir: 1.5)
+                    spheres.append(
+                        metal_sphere(center: center,
+                                     radius: 0.2,
+                                     mtl: sphere_mtl)
+                    )
+                }
+            }
+        }
+    }
+    // 生成中间三个球
+    let mtl_left = Material(material_type: Diffuse,
+                            material_color: Vec3(x: 0.4,
+                                                 y: 0.2,
+                                                 z: 0.1),
+                            fuzz:1.0,
+                            ir:1.0)
+    spheres.append(
+        metal_sphere(center: Vec3(x: -4.0, y: 1.0, z: 0.0),
+                     radius: 1.0,
+                     mtl: mtl_left))
+    
+    let mtl_center = Material(material_type: Dielectric,
+                              material_color: Vec3(x: 1.0,
+                                                   y: 1.0,
+                                                   z: 1.0),
+                              fuzz:1.0,
+                              ir:1.5)
+    spheres.append(
+        metal_sphere(center: Vec3(x: 0.0, y: 1.0, z: 0.0),
+                     radius: 1.0,
+                     mtl: mtl_center))
+    
+    let mtl_right = Material(material_type: Metal,
+                             material_color: Vec3(x: 1.0,
+                                                  y: 1.0,
+                                                  z: 1.0),
+                             fuzz:0.0,
+                             ir:1.5)
+    spheres.append(
+        metal_sphere(center: Vec3(x: 4.0, y: 1.0, z: 0.0),
+                     radius: 1.0,
+                     mtl: mtl_right))
+}
+
 func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
     var image: CGImage?
     do{
@@ -66,62 +177,10 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         #endif
         let texture = device?.makeTexture(descriptor: texture_descriptor)
         compute_encoder?.setTexture(texture, index: 0)
-        // 设置materialType
-        let Diffuse: UInt32 = 0
-        let Metal: UInt32 = 1
-        let Dielectric: UInt32 = 2
         
-        let mtl_ground = Material(material_type:Diffuse,
-                                  material_color:Vec3(x: 0.8,
-                                                      y: 0.3,
-                                                      z: 0.3),
-                                  fuzz:1.0,
-                                  ir:1.0)
-        let mtl_center = Material(material_type: Diffuse,
-                                  material_color: Vec3(x: 0.8,
-                                                       y: 0.8,
-                                                       z: 0.8),
-                                  fuzz:0.7,
-                                  ir:1.0)
-        let mtl_left = Material(material_type: Dielectric,
-                                material_color: Vec3(x: 0.72,
-                                                     y: 1.02,
-                                                     z: 0.52),
-                                fuzz:0.3,
-                                ir:1.5)
-        let mtl_right = Material(material_type: Metal,
-                                 material_color: Vec3(x: 1.05,
-                                                      y: 0.95,
-                                                      z: 0.15),
-                                 fuzz:0.0,
-                                 ir:1.0)
         // 设置hitlist
         var spheres = [metal_sphere]()
-        spheres.append(
-            metal_sphere(center:Vec3(x:0,y:-100.5,z:-1.0),
-                         radius:100.0,
-                         mtl:mtl_ground)
-        )
-        spheres.append(
-            metal_sphere(center:Vec3(x:0,y:0,z:-1.0),
-                         radius:0.5,
-                         mtl:mtl_center)
-        )
-        spheres.append(
-            metal_sphere(center:Vec3(x:-1.0,y:0,z:-1.0),
-                         radius:0.5,
-                         mtl:mtl_left)
-        )
-        spheres.append(
-            metal_sphere(center:Vec3(x:-1.0,y:0,z:-1.0),
-                         radius:-0.4,
-                         mtl:mtl_left)
-        )
-        spheres.append(
-            metal_sphere(center:Vec3(x:1.0,y:0,z:-1.0),
-                         radius:0.5,
-                         mtl:mtl_right)
-        )
+        random_scene(&spheres)
         
         let array_size = MemoryLayout<metal_sphere>.size * spheres.count
         let sphere_buffer = device?.makeBuffer(
@@ -141,15 +200,15 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         
         // Camera参数
         var camera_data = [metal_camera]()
-        let from = Vec3(x:3,
-                        y:3,
-                        z:2)
+        let from = Vec3(x:13,
+                        y:2,
+                        z:3)
         let to = Vec3(x: 0,
                       y: 0,
-                      z: -1)
-        let offset = from - to
+                      z: 0)
         
-        let dist = sqrt(Double(offset.length_squared()))
+        let aperture = 0.1
+        let focus_dist = 10.0
         
         camera_data.append(
             metal_camera(lookfrom: from,
@@ -159,8 +218,8 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
                                    z:0),
                          vfov: 30.0,
                          aspect_ratio: 16.0 / 9.0,
-                         aperture: 2.0,
-                         focus_dist: Float(dist))
+                         aperture: Float(aperture),
+                         focus_dist: Float(focus_dist))
         )
         let buf_size = MemoryLayout<metal_camera>.size * camera_data.count
         

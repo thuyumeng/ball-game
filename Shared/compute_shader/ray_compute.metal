@@ -12,8 +12,8 @@ using namespace metal;
 // 下面的函数有些用到了引用：https://stackoverflow.com/questions/54665905/how-to-define-functions-with-a-referenced-parameter-in-metal-shader-language-exc
 //  以上这片文章很好的解释了如何应用reference和地址空间
 
-#define SAMPLES_PER_PIXEL 100
-#define MAX_DEPTH 50
+#define SAMPLES_PER_PIXEL 10
+#define MAX_DEPTH 10
 #define PI 3.1415926
 #define Z_CORRECTION  0.0001
 
