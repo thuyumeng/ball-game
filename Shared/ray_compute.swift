@@ -8,6 +8,7 @@
 import Foundation
 import Metal
 import CoreImage
+import MetalKit
 
 struct Material {
     var material_type: UInt32
@@ -36,33 +37,30 @@ struct metal_camera {
     var aspect_ratio: Float
 }
 
-func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
-    var image: CGImage?
+func ComputeTexture(_ coordinator: Coordinator, _ view: MTKView){
+    guard let drawable = view.currentDrawable else {
+        return
+    }
+    
+    let drawable_size = view.drawableSize
+    let win_width = drawable_size.width
+    let win_height = drawable_size.height
+    
     do{
-        let device = MTLCreateSystemDefaultDevice()
+        let device = coordinator.metalDevice
         let metal_lib = device?.makeDefaultLibrary()
         let metal_func = metal_lib?.makeFunction(name: "compute_ray")
         let func_pso = try device?.makeComputePipelineState(function: metal_func!)
         
         // 设置command queue，command_buffer，compute_encoder
-        let cmd_queue = device?.makeCommandQueue()
+        let cmd_queue = coordinator.metalCommandQueue
         let cmd_buff = cmd_queue?.makeCommandBuffer()
         let compute_encoder = cmd_buff?.makeComputeCommandEncoder()
         // 设置compute encoder的pipeline state和输入buffer，或者texture
         // 即将compute shader和输入的数据绑定（笔者的理解)
         compute_encoder?.setComputePipelineState(func_pso!)
         
-        // 先创建metal输出的texture
-        let texture_descriptor = MTLTextureDescriptor.texture2DDescriptor(
-            pixelFormat: MTLPixelFormat.rgba8Unorm,
-            width: Int(win_width), height: Int(win_height),
-            mipmapped: false)
-        texture_descriptor.usage = MTLTextureUsage.shaderWrite
-        texture_descriptor.textureType = MTLTextureType.type2D
-        #if os(OSX)
-        texture_descriptor.storageMode = MTLStorageMode.managed
-        #endif
-        let texture = device?.makeTexture(descriptor: texture_descriptor)
+        let texture = drawable.texture
         compute_encoder?.setTexture(texture, index: 0)
         // 设置materialType
         let Diffuse: UInt32 = 0
@@ -163,7 +161,7 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
                                    index: 2)
         
         // 设置thread组织形式
-        let grid_size = MTLSizeMake(win_width, win_height, 1)
+        let grid_size = MTLSizeMake(Int(win_width), Int(win_height), 1)
         // metal 这个thread_group_size 应该怎样设置？
         // 参照 https://developer.apple.com/documentation/metal/calculating_threadgroup_and_grid_sizes
         // 这片文章：https://developer.apple.com/documentation/metal/creating_threads_and_threadgroups
@@ -175,54 +173,13 @@ func ComputeTexture(_ win_width: Int, _ win_height: Int) -> CGImage{
         //  compute pass encoding结束
         compute_encoder?.endEncoding()
         
-        // 同步encoder
-        let blit_encoder = cmd_buff?.makeBlitCommandEncoder()
-        #if os(OSX)
-        blit_encoder?.synchronize(texture: texture!, slice: 0, level: 0)
-        #endif
-        blit_encoder?.endEncoding()
-
+        cmd_buff?.present(drawable)
         // 执行command buffer
         cmd_buff?.commit()
-        cmd_buff?.waitUntilCompleted()
- 
-        var imageBytes = [UInt8](
-            repeating: 0,
-            count: Int(win_width * win_height * 4))
-        
-        let region = MTLRegionMake2D(0, 0, win_width, win_height)
-        texture!.getBytes(
-            UnsafeMutableRawPointer(&imageBytes),
-            bytesPerRow: win_width * 4,
-            from: region,
-            mipmapLevel: 0)
-        // 返回texture信息
-        let bitsPerComponent = 8
-        let bitsPerPixel = 32
-        let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
-        
-        let providerRef = CGDataProvider(
-            data:NSData(
-                bytes: imageBytes,
-                length: imageBytes.count))
-        image = CGImage(
-            width:win_width,
-            height:win_height,
-            bitsPerComponent:bitsPerComponent,
-            bitsPerPixel:bitsPerPixel,
-            bytesPerRow:win_width * 4,
-            space:rgbColorSpace,
-            bitmapInfo:bitmapInfo,
-            provider:providerRef!,
-            decode:nil,
-            shouldInterpolate:true,
-            intent:CGColorRenderingIntent.defaultIntent)
     }
     catch {
         print("create function pipeline state failed")
     }
-    return image!
 }
 
 
