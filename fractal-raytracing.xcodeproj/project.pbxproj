@@ -21,6 +21,10 @@
 		74CDC29A269D7C840097A7C9 /* raytracing_view.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CDC298269D7C840097A7C9 /* raytracing_view.swift */; };
 		74D368E426CB947500E10B34 /* ray_compute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D368E326CB947400E10B34 /* ray_compute.swift */; };
 		74D368E526CB947500E10B34 /* ray_compute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74D368E326CB947400E10B34 /* ray_compute.swift */; };
+		74FD5EFF29FD08DB0048EAFB /* ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74FD5EFE29FD08DB0048EAFB /* ray.metal */; };
+		74FD5F0029FD08DB0048EAFB /* ray.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74FD5EFE29FD08DB0048EAFB /* ray.metal */; };
+		74FD5F0229FD09E10048EAFB /* vec3.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74FD5F0129FD09E10048EAFB /* vec3.metal */; };
+		74FD5F0329FD09E10048EAFB /* vec3.metal in Sources */ = {isa = PBXBuildFile; fileRef = 74FD5F0129FD09E10048EAFB /* vec3.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +63,8 @@
 		74CDC283269D79750097A7C9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		74CDC298269D7C840097A7C9 /* raytracing_view.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = raytracing_view.swift; sourceTree = "<group>"; };
 		74D368E326CB947400E10B34 /* ray_compute.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ray_compute.swift; sourceTree = "<group>"; };
+		74FD5EFE29FD08DB0048EAFB /* ray.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ray.metal; sourceTree = "<group>"; };
+		74FD5F0129FD09E10048EAFB /* vec3.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = vec3.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -175,10 +181,20 @@
 		74D368E926CE5AD100E10B34 /* compute_shader */ = {
 			isa = PBXGroup;
 			children = (
+				74FD5EFD29FD08930048EAFB /* data_structure */,
 				74034C3426D3C0AA00BEE306 /* random */,
 				749BD8FC26D38E5700D7004F /* ray_compute.metal */,
 			);
 			path = compute_shader;
+			sourceTree = "<group>";
+		};
+		74FD5EFD29FD08930048EAFB /* data_structure */ = {
+			isa = PBXGroup;
+			children = (
+				74FD5EFE29FD08DB0048EAFB /* ray.metal */,
+				74FD5F0129FD09E10048EAFB /* vec3.metal */,
+			);
+			path = data_structure;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -342,6 +358,8 @@
 				74CDC286269D79750097A7C9 /* ContentView.swift in Sources */,
 				74CDC299269D7C840097A7C9 /* raytracing_view.swift in Sources */,
 				74CDC284269D79750097A7C9 /* fractal_raytracingApp.swift in Sources */,
+				74FD5EFF29FD08DB0048EAFB /* ray.metal in Sources */,
+				74FD5F0229FD09E10048EAFB /* vec3.metal in Sources */,
 				74D368E426CB947500E10B34 /* ray_compute.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -354,6 +372,8 @@
 				74CDC287269D79750097A7C9 /* ContentView.swift in Sources */,
 				74CDC29A269D7C840097A7C9 /* raytracing_view.swift in Sources */,
 				74CDC285269D79750097A7C9 /* fractal_raytracingApp.swift in Sources */,
+				74FD5F0029FD08DB0048EAFB /* ray.metal in Sources */,
+				74FD5F0329FD09E10048EAFB /* vec3.metal in Sources */,
 				74D368E526CB947500E10B34 /* ray_compute.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
