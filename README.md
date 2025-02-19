@@ -1,3 +1,4 @@
+# ball-game raytracing
 This is an experimental project using Swift and Metal
 using compute shader to implement basic raytracing algorithm
 
